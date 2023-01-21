@@ -4,7 +4,8 @@
 #include "shellmemory.h"
 #include "shell.h"
 
-int MAX_ARGS_SIZE = 3;
+//int MAX_ARGS_SIZE = 3;
+int MAX_ARGS_SIZE = 7;
 
 int badcommand(){
 	printf("%s\n", "Unknown Command");
@@ -15,6 +16,17 @@ int badcommand(){
 int badcommandFileDoesNotExist(){
 	printf("%s\n", "Bad command: File not found");
 	return 3;
+}
+
+//for too many tokens in set
+int tooManyTokens(){
+	printf("%s\n", "Bad command: Too many tokens");
+	return 6;
+}
+
+int tooFewTokens(){
+	printf("%s\n", "Bad command: Too few tokens");
+	return 7;
 }
 
 int help();
@@ -48,7 +60,29 @@ int interpreter(char* command_args[], int args_size){
 
 	} else if (strcmp(command_args[0], "set")==0) {
 		//set
-		if (args_size != 3) return badcommand();	
+		//to check if we have too little/too many tokens
+		if (args_size < 3) return tooFewTokens();
+		if (args_size > MAX_ARGS_SIZE) return tooManyTokens();	
+		//In case there is only one token
+		if (args_size==3){
+			return set(command_args[1], command_args[2]); 
+		} else {
+			//we set a generous size for the combined tokens (which is just an array of chars)
+			char combinedTokens[800] = "";
+			char whiteSpace = ' ';
+			for (int i = 2; i<args_size; ++i){
+				if (i==args_size-1){
+					//we just append without adding space a the end
+					combinedTokens = strcat(combinedTokens, command_args[i]);
+				} else {
+					//we append and we add a white space at the end
+					combinedTokens = strcat(combinedTokens, command_args[i]);
+					combinedTokens = strcat(combinedTokens, whiteSpace);
+				}
+			}
+			return set(command_args[1], combinedTokens); 
+		}
+		
 		return set(command_args[1], command_args[2]);
 	
 	} else if (strcmp(command_args[0], "print")==0) {

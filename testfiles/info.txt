@@ -1,0 +1,2 @@
+In this directory, I simply experiment and play around to learn the functionalities of C 
+without causing any issues to the src code. 
