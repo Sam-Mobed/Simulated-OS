@@ -61,29 +61,22 @@ int interpreter(char* command_args[], int args_size){
 	} else if (strcmp(command_args[0], "set")==0) {
 		//set
 		//to check if we have too little/too many tokens
-		if (args_size < 3) return tooFewTokens();
-		if (args_size > MAX_ARGS_SIZE) return tooManyTokens();	
-		//In case there is only one token
-		if (args_size==3){
-			return set(command_args[1], command_args[2]); 
-		} else {
-			//we set a generous size for the combined tokens (which is just an array of chars)
-			char combinedTokens[800] = "";
-			char whiteSpace = ' ';
-			for (int i = 2; i<args_size; ++i){
-				if (i==args_size-1){
-					//we just append without adding space a the end
-					combinedTokens = strcat(combinedTokens, command_args[i]);
-				} else {
-					//we append and we add a white space at the end
-					combinedTokens = strcat(combinedTokens, command_args[i]);
-					combinedTokens = strcat(combinedTokens, whiteSpace);
-				}
-			}
-			return set(command_args[1], combinedTokens); 
-		}
+		//if (args_size < 3) return tooFewTokens();
+		//if (args_size > MAX_ARGS_SIZE) return tooManyTokens();	
+		//set a decent buffer size, in case the size of the tokens are big
+		char combinedTokens[900];
+		char *pointer=combinedTokens;
+
+		for(int i=2;i<args_size;i++){
+			strcpy(pointer, command_args[i]);
+			pointer=pointer+strlen(command_args[i]);
+			if (i!=args_size-1){
+				strcpy(pointer," ");
+				pointer++;
+			}//strcpy automatically adds a \0 at the end of the copied str
+		}//so we're safe
+		return set(command_args[1], combinedTokens); 
 		
-		return set(command_args[1], command_args[2]);
 	
 	} else if (strcmp(command_args[0], "print")==0) {
 		if (args_size != 2) return badcommand();
@@ -93,7 +86,22 @@ int interpreter(char* command_args[], int args_size){
 		if (args_size != 2) return badcommand();
 		return run(command_args[1]);
 	
-	} else return badcommand();
+	} else if (strcmp(command_args[0], "echo")==0){
+		if (command_args[1][0]!='$'){
+			printf("%s\n",command_args[1]);
+			return 0;
+		}else{
+			char *variableName=command_args[1]+1; //to remove the $
+			char *value=mem_get_value(variableName);
+			if (!strcmp(value,"Variable does not exist")){ //since the return value is 1, but 1==false
+				printf("\n");	//we might run into trouble if the actual value of the variable is this
+				return 0; //but to avoid this we would likely have to add a function to shellmemory.
+			} else{
+				printf("%s\n",value);
+				return 0;
+			}
+		}
+	}else return badcommand();
 }
 
 int help(){
@@ -103,7 +111,8 @@ help			Displays all the commands\n \
 quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
-run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
+run SCRIPT.TXT		Executes the file SCRIPT.TXT\n \
+echo VAR 		Prints the value of a variable or an alphanumeric string\n";
 	printf("%s\n", help_string);
 	return 0;
 }

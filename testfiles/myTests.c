@@ -11,21 +11,37 @@ int main(){
     //the second line doesn't work either since link is a pointer to a char
     printf("%p\n",link); 
     //so int!=char *, because pointers are hexadecimal values.*/
+    char *command_args[] = {"ice cream", "$cum", "coke"};
+    int args_size=3;
+    char combinedTokens[100];
+    char *pointer = combinedTokens;
+    printf("%p\n",pointer);
+    /*
+	for(int i=0;i<args_size;i++){
+        printf("%s\n", combinedTokens);
+        strcpy(pointer,command_args[i]);
+        pointer=pointer+strlen(command_args[0]);
+		if (i!=args_size-1){
+            strcpy(pointer," ");
+            pointer++;
+			//combinedTokens = strcat(combinedTokens, command_args[i]);
+		}
+	}
     
-    char result[20] = "";
-    char* command_args[]={"a\0","b\0","c\0"};
-    int x = sizeof(command_args)/sizeof(command_args[0]);
+		//for safety we add a null character at the end
+		//combinedTokens = strcat(combinedTokens, "\0");
     
-    for (int i=0;i<x;++i){
-        //printf("%s ", command_args[i] );
-        strcat(result,command_args[i]);
+	//strcat(combinedTokens, " a");
+    combinedTokens[strlen(combinedTokens)]='\0';
+	printf("%s\n", combinedTokens);
+    */ 
+    
+    int x = command_args[1][0]=='$';
+    printf("%d\n",x);
+    if (!strcmp("hi","hi")){
+        printf("%d\n",x);
+        printf("\n");
     }
-    
-    
-    char n = '\n';
-    
-    printf("%s %c", result,n);
-    
 
 
 
