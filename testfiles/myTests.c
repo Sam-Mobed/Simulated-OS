@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h> 
 
-int main(){
+int compareStrings(const void *str1, const void *str2){
+	return strcmp(*(const char**)str1, *(const char**)str2);
+}
+
+int main(int argc, char *argv[]){
     /*char *link = "=";
     //printf("%d\n",&link);
     //printf("%c\n",link); 
@@ -11,11 +16,14 @@ int main(){
     //the second line doesn't work either since link is a pointer to a char
     printf("%p\n",link); 
     //so int!=char *, because pointers are hexadecimal values.*/
+    
+    /*
     char *command_args[] = {"ice cream", "$cum", "coke"};
     int args_size=3;
     char combinedTokens[100];
     char *pointer = combinedTokens;
     printf("%p\n",pointer);
+    */
     /*
 	for(int i=0;i<args_size;i++){
         printf("%s\n", combinedTokens);
@@ -35,13 +43,46 @@ int main(){
     combinedTokens[strlen(combinedTokens)]='\0';
 	printf("%s\n", combinedTokens);
     */ 
-    
+    /*
     int x = command_args[1][0]=='$';
     printf("%d\n",x);
     if (!strcmp("hi","hi")){
         printf("%d\n",x);
         printf("\n");
     }
+    */
+    DIR *pwd;
+    struct dirent *dir;
+	pwd= opendir(".");
+	char *arr[50]; //allot a decent buffer size
+	int index=0;
+
+	if (pwd){
+		while ((dir=readdir(pwd)) != NULL){
+			arr[index]=strdup(dir->d_name);
+			index++;
+		}
+		closedir(pwd);
+	}
+	int arrSize = sizeof(arr)/sizeof(arr[0]);
+	qsort(arr,arrSize,sizeof(char *),compareStrings);
+
+	for(int j=0;j<arrSize;j++){
+		printf("%s\n",arr[j]);
+	}
+   /*
+   char prompt;
+    if (!strcmp(argv[1],"<")){
+        prompt='\0';
+        printf("%c",prompt);
+        printf("\n");
+    }else{
+        prompt='$';
+        printf("%c\n",prompt);
+    }
+    */
+
+    //printf("%c\n",prompt);
 
 
 

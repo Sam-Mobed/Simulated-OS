@@ -1,21 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> 
+#include <string.h>
+#include <dirent.h>   
 #include "shellmemory.h"
 #include "shell.h"
 
 //int MAX_ARGS_SIZE = 3;
 int MAX_ARGS_SIZE = 7;
 
-int badcommand(){
-	printf("%s\n", "Unknown Command");
-	return 1;
-}
-
-// For run command only
-int badcommandFileDoesNotExist(){
-	printf("%s\n", "Bad command: File not found");
-	return 3;
+int compareStrings(const void *str1, const void *str2){
+	return strcmp(*(const char**)str1, *(const char**)str2);
 }
 
 //for too many tokens in set
@@ -27,6 +21,23 @@ int tooManyTokens(){
 int tooFewTokens(){
 	printf("%s\n", "Bad command: Too few tokens");
 	return 7;
+}
+
+int badcommand(int args_size){
+	if (args_size>MAX_ARGS_SIZE){
+		return tooManyTokens(); 
+	} else if (args_size<MAX_ARGS_SIZE){
+		return tooFewTokens(); 
+	}else{
+		printf("%s\n", "Unknown Command");
+	}
+	return 1;
+}//had to modiy this function to match the desired output in the examples given
+
+// For run command only
+int badcommandFileDoesNotExist(){
+	printf("%s\n", "Bad command: File not found");
+	return 3;
 }
 
 int help();
@@ -41,7 +52,7 @@ int interpreter(char* command_args[], int args_size){
 	int i;
 
 	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
-		return badcommand();
+		return badcommand(args_size);
 	}
 
 	for ( i=0; i<args_size; i++){ //strip spaces new line etc
@@ -50,12 +61,12 @@ int interpreter(char* command_args[], int args_size){
 
 	if (strcmp(command_args[0], "help")==0){
 	    //help
-	    if (args_size != 1) return badcommand();
+	    if (args_size != 1) return badcommand(args_size);
 	    return help();
 	
 	} else if (strcmp(command_args[0], "quit")==0) {
 		//quit
-		if (args_size != 1) return badcommand();
+		if (args_size != 1) return badcommand(args_size);
 		return quit();
 
 	} else if (strcmp(command_args[0], "set")==0) {
@@ -75,15 +86,22 @@ int interpreter(char* command_args[], int args_size){
 				pointer++;
 			}//strcpy automatically adds a \0 at the end of the copied str
 		}//so we're safe
+		//now wew filter the array to get rid of non-printable characters
+		int size = strlen(combinedTokens);//we write it here so it only computes once
+		for(int i=0;i<size;i++){
+			if(combinedTokens[i]>126 || combinedTokens[i]<32){
+				combinedTokens[i]='\0';
+			}
+		}
 		return set(command_args[1], combinedTokens); 
 		
 	
 	} else if (strcmp(command_args[0], "print")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(args_size);
 		return print(command_args[1]);
 	
 	} else if (strcmp(command_args[0], "run")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(args_size);
 		return run(command_args[1]);
 	
 	} else if (strcmp(command_args[0], "echo")==0){
@@ -101,18 +119,39 @@ int interpreter(char* command_args[], int args_size){
 				return 0;
 			}
 		}
-	}else return badcommand();
+	}else if(strcmp(command_args[0], "my_ls")==0){
+		if(args_size!=1) return badcommand(args_size);
+		DIR *pwd;
+		struct dirent *dir;
+		pwd= opendir(".");
+		char *arr[500]; //allot a decent buffer size
+		int index=0;
+
+		if (pwd){
+			while ((dir=readdir(pwd)) != NULL){
+				arr[index]=(dir->d_name);
+				index++;
+			}
+			closedir(pwd);
+		}
+		int arrSize = sizeof(arr)/sizeof(arr[0]);
+		qsort(arr,arrSize,sizeof(char *),compareStrings);
+
+		for(int j=0;j<arrSize;j++){
+			printf("%s\n",arr[j]);
+		}
+		return 0;
+	}else return badcommand(args_size);
 }
 
 int help(){
 
-	char help_string[] = "COMMAND			DESCRIPTION\n \
-help			Displays all the commands\n \
-quit			Exits / terminates the shell with “Bye!”\n \
-set VAR STRING		Assigns a value to shell memory\n \
-print VAR		Displays the STRING assigned to VAR\n \
-run SCRIPT.TXT		Executes the file SCRIPT.TXT\n \
-echo VAR 		Prints the value of a variable or an alphanumeric string\n";
+	char help_string[] = "COMMAND                 DESCRIPTION\n \
+help			        Displays all the commands\n \
+quit			        Exits / terminates the shell with “Bye!”\n \
+set VAR STRING		    Assigns a value to shell memory\n \
+print VAR		        Displays the STRING assigned to VAR\n \
+run SCRIPT.TXT         Executes the file SCRIPT.TXT\n ";
 	printf("%s\n", help_string);
 	return 0;
 }
