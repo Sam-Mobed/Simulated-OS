@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h>   
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -18,16 +20,14 @@ int tooManyTokens(){
 	return 6;
 }
 
-int tooFewTokens(){
-	printf("%s\n", "Bad command: Too few tokens");
+int mkdirError(){
+	printf("%s\n", "Bad command: my_mkdir");
 	return 7;
 }
 
 int badcommand(int args_size){
 	if (args_size>MAX_ARGS_SIZE){
-		return tooManyTokens(); 
-	} else if (args_size<MAX_ARGS_SIZE){
-		return tooFewTokens(); 
+		return tooManyTokens();
 	}else{
 		printf("%s\n", "Unknown Command");
 	}
@@ -120,7 +120,6 @@ int interpreter(char* command_args[], int args_size){
 			}
 		}
 	}else if(strcmp(command_args[0], "my_ls")==0){
-		if(args_size!=1) return badcommand(args_size);
 		DIR *pwd;
 		struct dirent *dir;
 		pwd= opendir(".");
@@ -129,18 +128,44 @@ int interpreter(char* command_args[], int args_size){
 
 		if (pwd){
 			while ((dir=readdir(pwd)) != NULL){
-				arr[index]=(dir->d_name);
+				arr[index]=strdup(dir->d_name);
 				index++;
 			}
 			closedir(pwd);
 		}
-		int arrSize = sizeof(arr)/sizeof(arr[0]);
+		int arrSize = index;
 		qsort(arr,arrSize,sizeof(char *),compareStrings);
 
 		for(int j=0;j<arrSize;j++){
 			printf("%s\n",arr[j]);
+			free(arr[j]);
 		}
 		return 0;
+	}else if(strcmp(command_args[0], "my_mkdir")==0){
+		if (args_size != 2) return mkdirError();
+
+		char *dname;
+		int status;
+
+		if (command_args[1][0]!='$'){
+			dname=command_args[1];
+			status = mkdir(dname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			return 0; //^specifying the permissions for the directory
+		}else{
+			char *var=command_args[1]+1; //to remove the $
+			dname=mem_get_value(var);
+			if (strcmp(dname,"Variable does not exist")){ 
+				status = mkdir(dname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+				return 0; 
+			}else{
+				mkdirError();
+			}
+		}
+
+
+	}else if(strcmp(command_args[0], "my_touch")==0){
+		if (args_size != 2) return mkdirError();
+		//check for what they want for error codes and return that	
 	}else return badcommand(args_size);
 }
 

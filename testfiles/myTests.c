@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
     DIR *pwd;
     struct dirent *dir;
 	pwd= opendir(".");
-	char *arr[50]; //allot a decent buffer size
+	char *arr[500]; //allot a decent buffer size
 	int index=0;
 
 	if (pwd){
@@ -64,11 +64,12 @@ int main(int argc, char *argv[]){
 		}
 		closedir(pwd);
 	}
-	int arrSize = sizeof(arr)/sizeof(arr[0]);
+	int arrSize = index;
 	qsort(arr,arrSize,sizeof(char *),compareStrings);
 
 	for(int j=0;j<arrSize;j++){
 		printf("%s\n",arr[j]);
+        free(arr[j]);
 	}
    /*
    char prompt;
