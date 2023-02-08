@@ -6,84 +6,125 @@
 int compareStrings(const void *str1, const void *str2){
 	return strcmp(*(const char**)str1, *(const char**)str2);
 }
+/*
+int parseInput(char ui[]) {
+    char tmp[200];
+    char *words[100];                            
+    int a;
+    int b;                       
+    int w=0; // wordID    
+    int errorCode;
+    for(a=0; ui[a]==' ' && a<1000; a++);        // skip white spaces
+    while(ui[a] != '\n' && ui[a] != '\0' && a<1000) {
+        if(ui[a]==';'){
+            errorCode=interpreter(words,w);
+            memset(tmp,'\0',200);
+            for(int i=0;i<w;i++){
+                free(words[i]);
+            }
+            w=0; //we need to reinitalize words as well or we might run into trouble
+            memset(words, 0, sizeof(char *) * 100);
+            //this way we clear the pointers and the value of the strings
+            a++;
+        }else{
+            for(b=0;ui[a]!=';' && ui[a]!='\0' && ui[a]!='\n' && ui[a]!=' ' && a<1000; a++, b++){
+                tmp[b] = ui[a];                        
+                // extract a word
+            }
+            tmp[b] = '\0';
+            words[w] = strdup(tmp);
+            w++;
+            if(ui[a] == '\0') break;
+            a++; 
+        }
+    }
+    if (ui[a] == '\n' || ui[a] == '\0' || a==1000){
+        errorCode = interpreter(words, w);
+    } //to run the last command of one liners, or the only command
+    //in case there are no semi colons
+    
+    return errorCode;
+}
+
+
+int parseInput(char ui[]) {
+    char tmp[200];
+    char *words[100];                            
+    int a = 0;
+    int b;                            
+    int w=0; // wordID    
+    int errorCode;
+
+    const char sep[2] = ";";
+    char *token;
+    token = strtok(ui,sep);
+
+    while(token!=NULL){
+        for(a=0; token[a]==' ' && a<1000; a++);        // skip white spaces
+        while(token[a] != '\n' && token[a] != '\0' && a<1000) {
+            for(b=0; token[a]!=';' && token[a]!='\0' && token[a]!='\n' && token[a]!=' ' && a<1000; a++, b++){
+                tmp[b] = token[a];                        
+                // extract a word
+            }
+            tmp[b] = '\0';
+            words[w] = strdup(tmp);
+            w++;
+        if(token[a] == '\0') break;
+        a++; 
+        }
+        errorCode = interpreter(words, w);
+        token = strtok(NULL,sep);
+    }
+    return errorCode;    
+}
+*/
 
 int main(int argc, char *argv[]){
-    /*char *link = "=";
-    //printf("%d\n",&link);
-    //printf("%c\n",link); 
-    //the above doesn't work, because &link is a pointer that poins to a pointer
-    //which points to a char. pointer>pointer>char
-    //the second line doesn't work either since link is a pointer to a char
-    printf("%p\n",link); 
-    //so int!=char *, because pointers are hexadecimal values.*/
-    
-    /*
-    char *command_args[] = {"ice cream", "$cum", "coke"};
-    int args_size=3;
-    char combinedTokens[100];
-    char *pointer = combinedTokens;
-    printf("%p\n",pointer);
-    */
-    /*
-	for(int i=0;i<args_size;i++){
-        printf("%s\n", combinedTokens);
-        strcpy(pointer,command_args[i]);
-        pointer=pointer+strlen(command_args[0]);
-		if (i!=args_size-1){
-            strcpy(pointer," ");
-            pointer++;
-			//combinedTokens = strcat(combinedTokens, command_args[i]);
-		}
-	}
-    
-		//for safety we add a null character at the end
-		//combinedTokens = strcat(combinedTokens, "\0");
-    
-	//strcat(combinedTokens, " a");
-    combinedTokens[strlen(combinedTokens)]='\0';
-	printf("%s\n", combinedTokens);
-    */ 
-    /*
-    int x = command_args[1][0]=='$';
-    printf("%d\n",x);
-    if (!strcmp("hi","hi")){
-        printf("%d\n",x);
-        printf("\n");
+    char tmp[200];
+    char *words[100];                            
+    int a = 0;
+    int b;                            
+    int w=0; // wordID    
+    int errorCode;
+    char ui[] = "set x 3; set y 7; echo hello\n";
+    //char ui[] = "set x 3\0"; 
+
+    const char sep[2] = ";";
+    char *token;
+    token = strtok(ui,sep);
+
+    while(token!=NULL){
+        for(a=0; token[a]==' ' && a<1000; a++);        // skip white spaces
+        while(token[a] != '\n' && token[a] != '\0' && a<1000) {
+            for(b=0; token[a]!=';' && token[a]!='\0' && token[a]!='\n' && token[a]!=' ' && a<1000; a++, b++){
+                tmp[b] = token[a];                        
+                // extract a word
+            }
+            tmp[b] = '\0';
+            words[w] = strdup(tmp);
+            w++;
+        if(token[a] == '\0') break;
+        a++; 
+        }
+        //errorCode = interpreter(words, w);
+        for (int z=0;z<w;z++){
+            printf("%s ",words[z]);
+            //printf("\n");
+        }
+        //errorCode=interpreter(words,w);
+        memset(tmp,'\0',200);
+        for(int i=0;i<w;i++){
+            free(words[i]);
+        }
+        w=0; //we need to reinitalize words as well or we might run into trouble
+        memset(words, 0, sizeof(char *) * 100);
+            //this way we clear the pointers and the value of the strings
+        //for(a=a; ui[a]==' ' && a<1000; a++);
+        printf("\n"); 
+        token = strtok(NULL,sep);
     }
-    */
-    DIR *pwd;
-    struct dirent *dir;
-	pwd= opendir(".");
-	char *arr[500]; //allot a decent buffer size
-	int index=0;
-
-	if (pwd){
-		while ((dir=readdir(pwd)) != NULL){
-			arr[index]=strdup(dir->d_name);
-			index++;
-		}
-		closedir(pwd);
-	}
-	int arrSize = index;
-	qsort(arr,arrSize,sizeof(char *),compareStrings);
-
-	for(int j=0;j<arrSize;j++){
-		printf("%s\n",arr[j]);
-        free(arr[j]);
-	}
-   /*
-   char prompt;
-    if (!strcmp(argv[1],"<")){
-        prompt='\0';
-        printf("%c",prompt);
-        printf("\n");
-    }else{
-        prompt='$';
-        printf("%c\n",prompt);
-    }
-    */
-
-    //printf("%c\n",prompt);
+    //return errorCode; 
+    
 
 
 
