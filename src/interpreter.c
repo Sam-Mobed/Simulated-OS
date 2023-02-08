@@ -4,6 +4,8 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -23,6 +25,11 @@ int tooManyTokens(){
 int mkdirError(){
 	printf("%s\n", "Bad command: my_mkdir");
 	return 7;
+}
+
+int cdError(){
+	printf("%s\n", "Bad command: my_cd");
+	return 8;
 }
 
 int badcommand(int args_size){
@@ -136,9 +143,16 @@ int interpreter(char* command_args[], int args_size){
 		int arrSize = index;
 		qsort(arr,arrSize,sizeof(char *),compareStrings);
 
-		for(int j=0;j<arrSize;j++){
-			printf("%s\n",arr[j]);
-			free(arr[j]);
+		int j;
+    	int k;
+		for(j=0;j<arrSize;j++){
+        	for(k=0;k<strlen(arr[j]);k++){
+            	if(32<=arr[j][k]<=126){
+                	printf("%c",arr[j][k]);
+            	}
+        	}//to get rid of unprintable characters/undesirable bytes
+			printf("\n");
+        	free(arr[j]);
 		}
 		return 0;
 	}else if(strcmp(command_args[0], "my_mkdir")==0){
@@ -164,8 +178,22 @@ int interpreter(char* command_args[], int args_size){
 
 
 	}else if(strcmp(command_args[0], "my_touch")==0){
-		if (args_size != 2) return mkdirError();
-		//check for what they want for error codes and return that	
+		if (args_size != 2) return badcommand(args_size);
+		char *fileName = command_args[1];
+		int fd = open(fileName, O_CREAT | O_RDWR, 0666);
+		close(fd); //^to specify that the file can be read and written to, and then close the file
+		//0666 specifies that the file will be readable and writable by owner,group and others
+		//O_CREAT tells tthe open ot create he file if it doesn't alrady exist
+	}else if(strcmp(command_args[0], "my_cd")==0){
+		if (args_size != 2) return cdError();
+		DIR *dir = opendir(command_args[1]);
+		if (dir){
+			closedir(dir);
+			chdir(command_args[1]);
+		}else{
+			cdError();
+		}
+
 	}else return badcommand(args_size);
 }
 
