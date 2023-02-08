@@ -38,11 +38,13 @@ int main(int argc, char *argv[]) {
         char* c = fgets(userInput, MAX_USER_INPUT-1,stdin);
         if(c[0]==EOF){
             batchMode--;
-            continue;
+            freopen("/dev/tty","r",stdin);
+            //freopen("/dev/stdout","w",stdout);
+        }else{
+            errorCode = parseInput(userInput);
+		    if (errorCode == -1) exit(99);	// ignore all other errors
+		    memset(userInput, 0, sizeof(userInput));
         }
-		errorCode = parseInput(userInput);
-		if (errorCode == -1) exit(99);	// ignore all other errors
-		memset(userInput, 0, sizeof(userInput));
 	}
 
 	return 0;
