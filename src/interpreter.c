@@ -172,15 +172,18 @@ int interpreter(char* command_args[], int args_size){
 		}else{
 			char *var=command_args[1]+1; //to remove the $
 			dname=mem_get_value(var);
-			if (strcmp(dname,"Variable does not exist")){ 
-				status = mkdir(dname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-				return 0; 
+			char space=' '; //to check if the value returned is a single token
+			if (strcmp(dname,"Variable does not exist")){
+				if (strchr(dname,space)==NULL){
+					status = mkdir(dname, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+					return 0;
+				}else{//if there is not space, then it's a single token
+					mkdirError();
+				}
 			}else{
 				mkdirError();
 			}
 		}
-
-
 	}else if(strcmp(command_args[0], "my_touch")==0){
 		if (args_size != 2) return badcommand(args_size);
 		char *fileName = command_args[1];

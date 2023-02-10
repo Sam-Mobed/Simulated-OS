@@ -36,7 +36,8 @@ int main(int argc, char *argv[]) {
         //here you should check the unistd library 
         //so that you can find a way to not display $ in the batch mode
         char* c = fgets(userInput, MAX_USER_INPUT-1,stdin);
-        if(c[0]==EOF){
+        //if(c[0]==EOF || c==NULL){
+        if(c==NULL){
             batchMode--;
             freopen("/dev/tty","r",stdin);
             //freopen("/dev/stdout","w",stdout);
