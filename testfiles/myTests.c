@@ -80,6 +80,7 @@ int parseInput(char ui[]) {
 */
 
 int main(int argc, char *argv[]){
+    /*
     char tmp[200];
     char *words[100];                            
     int a = 0;
@@ -124,9 +125,37 @@ int main(int argc, char *argv[]){
         token = strtok(NULL,sep);
     }
     //return errorCode; 
-    
+    */
+    DIR *pwd;
+    struct dirent *dir;
+    pwd= opendir(".");
+    char *arr[500]; //allot a decent buffer size
+    int index=0;
 
+    if (pwd){
+        while ((dir=readdir(pwd)) != NULL){
+            arr[index]=strdup(dir->d_name);
+            index++;
+        }
+        closedir(pwd);
+    }
+    int arrSize = index;
+    qsort(arr,arrSize,sizeof(char *),compareStrings);
 
-
+    int j;
+    int k;
+    for(j=0;j<arrSize;j++){
+        if(!strcmp(arr[j],".\0")||!strcmp(arr[j],"..\0")){
+            free(arr[j]);
+            continue;
+        }
+        for(k=0;k<strlen(arr[j]);k++){
+            if(32<=arr[j][k]<=126){
+                printf("%c",arr[j][k]);
+            }
+        }//to get rid of unprintable characters/undesirable bytes
+        printf("\n");
+        free(arr[j]);
+    }
     return 0;
 }

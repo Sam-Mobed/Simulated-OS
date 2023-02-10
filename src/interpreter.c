@@ -136,7 +136,7 @@ int interpreter(char* command_args[], int args_size){
 		if (pwd){
 			while ((dir=readdir(pwd)) != NULL){
 				arr[index]=strdup(dir->d_name);
-				index++;
+            	index++;
 			}
 			closedir(pwd);
 		}
@@ -145,15 +145,19 @@ int interpreter(char* command_args[], int args_size){
 
 		int j;
     	int k;
-		for(j=0;j<arrSize;j++){
+    	for(j=0;j<arrSize;j++){
+        	if(!strcmp(arr[j],".\0")||!strcmp(arr[j],"..\0")){
+            	free(arr[j]);
+            	continue;
+        	}
         	for(k=0;k<strlen(arr[j]);k++){
             	if(32<=arr[j][k]<=126){
                 	printf("%c",arr[j][k]);
             	}
         	}//to get rid of unprintable characters/undesirable bytes
-			printf("\n");
+        	printf("\n");
         	free(arr[j]);
-		}
+    	}
 		return 0;
 	}else if(strcmp(command_args[0], "my_mkdir")==0){
 		if (args_size != 2) return mkdirError();
