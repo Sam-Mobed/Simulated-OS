@@ -41,12 +41,12 @@ int main(int argc, char *argv[]) {
             batchMode--;
             freopen("/dev/tty","r",stdin);
             //freopen("/dev/stdout","w",stdout);
-        }else{
+        }else if (strlen(userInput)>0){
             errorCode = parseInput(userInput);
 		    if (errorCode == -1) exit(99);	// ignore all other errors
 		    memset(userInput, 0, sizeof(userInput));
-        }//here the TA prevents the shell from getting commands if there aren't any
-	}// i might have to enforce this myself
+        }//added else if instead of else to fix the bug the TA said
+	}
 
 	return 0;
 

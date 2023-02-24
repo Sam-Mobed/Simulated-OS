@@ -80,82 +80,33 @@ int parseInput(char ui[]) {
 */
 
 int main(int argc, char *argv[]){
-    /*
-    char tmp[200];
-    char *words[100];                            
-    int a = 0;
-    int b;                            
-    int w=0; // wordID    
-    int errorCode;
-    char ui[] = "set x 3; set y 7; echo hello\n";
-    //char ui[] = "set x 3\0"; 
-
-    const char sep[2] = ";";
-    char *token;
-    token = strtok(ui,sep);
-
-    while(token!=NULL){
-        for(a=0; token[a]==' ' && a<1000; a++);        // skip white spaces
-        while(token[a] != '\n' && token[a] != '\0' && a<1000) {
-            for(b=0; token[a]!=';' && token[a]!='\0' && token[a]!='\n' && token[a]!=' ' && a<1000; a++, b++){
-                tmp[b] = token[a];                        
-                // extract a word
-            }
-            tmp[b] = '\0';
-            words[w] = strdup(tmp);
-            w++;
-        if(token[a] == '\0') break;
-        a++; 
-        }
-        //errorCode = interpreter(words, w);
-        for (int z=0;z<w;z++){
-            printf("%s ",words[z]);
-            //printf("\n");
-        }
-        //errorCode=interpreter(words,w);
-        memset(tmp,'\0',200);
-        for(int i=0;i<w;i++){
-            free(words[i]);
-        }
-        w=0; //we need to reinitalize words as well or we might run into trouble
-        memset(words, 0, sizeof(char *) * 100);
-            //this way we clear the pointers and the value of the strings
-        //for(a=a; ui[a]==' ' && a<1000; a++);
-        printf("\n"); 
-        token = strtok(NULL,sep);
-    }
-    //return errorCode; 
-    */
-    DIR *pwd;
-    struct dirent *dir;
-    pwd= opendir(".");
-    char *arr[500]; //allot a decent buffer size
-    int index=0;
-
-    if (pwd){
-        while ((dir=readdir(pwd)) != NULL){
-            arr[index]=strdup(dir->d_name);
-            index++;
-        }
-        closedir(pwd);
-    }
-    int arrSize = index;
-    qsort(arr,arrSize,sizeof(char *),compareStrings);
-
-    int j;
-    int k;
-    for(j=0;j<arrSize;j++){
-        if(!strcmp(arr[j],".\0")||!strcmp(arr[j],"..\0")){
-            free(arr[j]);
-            continue;
-        }
-        for(k=0;k<strlen(arr[j]);k++){
-            if(32<=arr[j][k]<=126){
-                printf("%c",arr[j][k]);
-            }
-        }//to get rid of unprintable characters/undesirable bytes
-        printf("\n");
-        free(arr[j]);
-    }
     return 0;
 }
+
+int run(char* script){
+        int errCode = 0;
+        FILE *p = fopen(script,"rt");  // the program is in a file
+
+        if(p == NULL){
+            return badcommandFileDoesNotExist();
+        }
+
+        char line[100];
+        fgets(line,99,p);
+        while(1){
+            //errCode = parseInput(line);	// which calls interpreter()
+            memset(line, 0, sizeof(line));
+
+            if(feof(p)){
+                break;
+            }
+            fgets(line,999,p);
+        }
+        //either at the beginning or the end of the loop i gotta 
+        //go in the memory and store the line
+
+        fclose(p);
+
+        return errCode;
+}
+    
