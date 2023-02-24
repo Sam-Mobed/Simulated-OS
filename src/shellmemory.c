@@ -80,5 +80,6 @@ char *mem_get_value(char *var_in) {
 		} 
 	}
 	return "Variable does not exist";
+	//for assignment2 we might change this to return NULL;
 
 }

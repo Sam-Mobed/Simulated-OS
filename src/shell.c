@@ -45,8 +45,8 @@ int main(int argc, char *argv[]) {
             errorCode = parseInput(userInput);
 		    if (errorCode == -1) exit(99);	// ignore all other errors
 		    memset(userInput, 0, sizeof(userInput));
-        }
-	}
+        }//here the TA prevents the shell from getting commands if there aren't any
+	}// i might have to enforce this myself
 
 	return 0;
 
