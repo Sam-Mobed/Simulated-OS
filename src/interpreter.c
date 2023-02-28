@@ -259,7 +259,8 @@ int run(char* script){
 	int result = memory_set_process(p);
 	fclose(p);
 	
-	execute_processes(FCFS);
+	//execute_processes(FCFS);
+	execute_processes(SJF);
 	
 	return result;
 }

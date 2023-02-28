@@ -64,99 +64,115 @@ void execute_FCFS (){
 	}
 }
 
-void execute_SJF (){
-	struct PCB *to_execute;
-	int smallestLen = 200;
+struct node *SJF_helper(){
 	struct node *ptr = head;
+	int smallestLen = 200;
+	struct node *execute = ptr;
 
-	while(head!=NULL){
-		
-		while(ptr->next!=NULL){
-			if (ptr->Content->length<smallestLen){
-			smallestLen = head->Content->length;
-			to_execute = ptr;
-			}
-			ptr=ptr->next;
-		}//this needs to be done in a loop outside!!!!!
-		struct PCB *pcb = ptr->Content;
-		char line[100];
-		int current = pcb->start;
-		int end = current+(pcb->length);
+	while(ptr->next!=NULL){
+		int len = ptr->Content->length;
+		if (len<smallestLen){
+			smallestLen = len;
+			execute=ptr;
+		}
+		ptr = ptr->next;
+	}
+	return execute;
+}
+
+void execute_SJF (){
+
+	struct node *execute = SJF_helper();
+	struct PCB *exec = execute->Content;
+
+	while(1){
+		int current = exec->start;
+		int end = current+(exec->length);
 
 		while(current<end){
-			fgets(line, 99, get_mem_struct(current)->value);
-			parseInput(line);
-			memset(line, 0, sizeof(line));
+			parseInput(get_mem_struct(current)->value);
 			clear_slot(current); //each line is cleared
 			current++;
 		}
 
-		free(pcb); //the pcb of the process that was executed is cleared
-		remove_node(ptr);
+		free(exec); //the pcb of the process that was executed is cleared
+		remove_node(execute);
+		if (head->Content==NULL){
+			break;
+		}
+		execute=SJF_helper();
+		exec=execute->Content;
 	}
 }
-/*
+
+struct node *RR_findNextNode(struct node *ptr){
+	if (ptr->next!=NULL){
+		return ptr->next;
+	}else{
+		return head;
+	}
+}
+
 void execute_RR (){
-	struct PCB *to_execute;
-	int smallestLen = 200;
-	struct node *ptr = head;
+	struct node *execute = head;
+	struct PCB *exec = execute->Content;
+	int current = exec->current;
+	int end = current+(exec->length);
 
-	while(head!=NULL){
-		to_execute = ptr->Content;
-		char line[100];
-		int current = to_execute->current;
-		int end = current+(to_execute->length);
-
-		for(int i=0;current<end && i<2;i++){
-			fgets(line, 99, get_mem_struct(current)->value);
-			parseInput(line);
-			memset(line, 0, sizeof(line));
-			clear_slot(current);
+	while(1){
+		int original_current = current;
+		for(int i=current;i<original_current+2 && i<end;i++){
+			parseInput(get_mem_struct(current)->value);
+			clear_slot(current); //each line is cleared
 			current++;
+			exec->length--; //to be able to accurately calculate the end
 		}
 
-		if(current=end){
-			free(to_execute);
-			remove_node(ptr);
-		}
-		if(head!=NULL){
-			if (ptr->next==NULL){
-				ptr=head;
+		if(head->next==NULL){
+			if (current!=end){
+				continue;
 			}else{
-				ptr=ptr->next; 
+				free(exec);
+				head->Content=NULL;
+			}
+		}else{
+			if (current!=end){
+				execute = RR_findNextNode(execute);
+				exec = execute->Content;
+				current = exec->current;
+				end = current+(exec->length);
+			}else{
+				free(exec);
+				struct node *remove = execute;
+				execute = RR_findNextNode(execute);
+				remove_node(remove);
+				exec = execute->Content;
+				current = exec->current;
+				end = current+(exec->length);
 			}
 		}
 	}
 }
 
 void execute_AGING (){
-	return;
-}
-*/
-//REEMOVE THE BOTTOM DEFS
-void execute_AGING (){
-	return;
-}
-
-void execute_SJF (){
-	return;
-}
-
-void execute_RR (){
 	return;
 }
 
 void remove_node(struct node *ptr){
 	//first we need to find the node that is pointing to it.
-	struct node *p = head;
-	if (p->next==NULL){
-		free(p);
-		head=NULL;
+	if (head->Content==NULL){
+		return; //the Linked list is already empty
+	}else if (head->next==NULL){ // only the head was left
+		head->Content=NULL;
+		return;
 	}
-	while(p->next!=NULL){
+	struct node *p = head;
+	
+	while(p->next!=NULL){ //we find the node before ptr
 		if (p->next==ptr){
 			break;
 		}
+		p=p->next;
 	}
 	//the node after the one we want to remove
 	struct node *nezt = ptr->next;
