@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include "shellmemory.h"
 #include "shell.h"
+#include "scheduler.h"
 
 //int MAX_ARGS_SIZE = 3;
 int MAX_ARGS_SIZE = 7;
@@ -53,6 +54,8 @@ int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int exec(char* script);
+enum policy setPolicy(char *str);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -201,6 +204,14 @@ int interpreter(char* command_args[], int args_size){
 			cdError();
 		}
 
+	}else if(strcmp(command_args[0], "exec")==0){
+		if (args_size < 3) return badcommand(args_size);
+		int result;
+		for (int i=1;i<args_size-1;i++){
+			result = exec(command_args[i]);
+		}
+		execute_processes(setPolicy(command_args[args_size-1]));
+		return result;
 	}else return badcommand(args_size);
 }
 
@@ -240,26 +251,42 @@ int print(char* var){
 }
 
 int run(char* script){
-	int errCode = 0;
-	char line[1000];
 	FILE *p = fopen(script,"rt");  // the program is in a file
-
 	if(p == NULL){
 		return badcommandFileDoesNotExist();
 	}
 
-	fgets(line,999,p);
-	while(1){
-		errCode = parseInput(line);	// which calls interpreter()
-		memset(line, 0, sizeof(line));
+	int result = memory_set_process(p);
+	fclose(p);
+	
+	execute_processes(FCFS);
+	
+	return result;
+}
 
-		if(feof(p)){
-			break;
-		}
-		fgets(line,999,p);
+int exec(char* script){
+	FILE *p = fopen(script,"rt");  // the program is in a file
+	if(p == NULL){
+		return badcommandFileDoesNotExist();
 	}
 
-    fclose(p);
+	int result = memory_set_process(p);
+	fclose(p);
 
-	return errCode;
+	return result;
+}
+
+enum policy setPolicy(char *str){
+	enum Undefined{UNK};
+	if (strcmp(str, "FCFS")==0){
+		return FCFS;
+	}else if (strcmp(str, "SJF")==0){
+		return SJF;
+	}else if (strcmp(str, "RR")==0){
+		return RR;
+	}else if (strcmp(str, "AGING")==0){
+		return AGING;
+	}else{
+		return UNK;
+	}//this will print invalid policy in the next function call
 }

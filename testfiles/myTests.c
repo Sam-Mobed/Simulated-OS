@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h> 
+#include <time.h>
 
 int compareStrings(const void *str1, const void *str2){
 	return strcmp(*(const char**)str1, *(const char**)str2);
@@ -78,35 +79,19 @@ int parseInput(char ui[]) {
     return errorCode;    
 }
 */
+char *generatePID(){
+	time_t now;
+    struct tm *local_time;
+    char time_string[100];
+
+    time(&now);
+    local_time = localtime(&now);
+
+    strftime(time_string, sizeof(time_string), "%Y%m%d%H%M%S", local_time);
+    return strdup(time_string);
+}
 
 int main(int argc, char *argv[]){
+    printf("%s\n", generatePID());
     return 0;
 }
-
-int run(char* script){
-        int errCode = 0;
-        FILE *p = fopen(script,"rt");  // the program is in a file
-
-        if(p == NULL){
-            return badcommandFileDoesNotExist();
-        }
-
-        char line[100];
-        fgets(line,99,p);
-        while(1){
-            //errCode = parseInput(line);	// which calls interpreter()
-            memset(line, 0, sizeof(line));
-
-            if(feof(p)){
-                break;
-            }
-            fgets(line,999,p);
-        }
-        //either at the beginning or the end of the loop i gotta 
-        //go in the memory and store the line
-
-        fclose(p);
-
-        return errCode;
-}
-    

@@ -1,14 +1,16 @@
 #include<stdlib.h>
 #include<string.h>
 #include<stdio.h>
-
-
-struct memory_struct{
-	char *var;
-	char *value;
-};
+#include<time.h>
+#include "shellmemory.h"
+#include "shell.h"
 
 struct memory_struct shellmemory[1000];
+int tracker = 0;
+//assuming each process will be at most 140 lines long, and we will have at most 3 processes
+//we set aside 420 slots in the array to store the lines for the processes
+// this tracker will help us know the next available slot, and to make sure we don't go above 420
+
 
 // Helper functions
 int match(char *model, char *var) {
@@ -32,11 +34,40 @@ char *extract(char *model) {
 	return strdup(value);
 }
 
+//this functions generates a PID using the current time, that way its unique.
+char *generatePID(){
+	time_t now;
+    struct tm *local_time;
+    char time_string[100];
+
+    time(&now);
+    local_time = localtime(&now);
+
+    strftime(time_string, sizeof(time_string), "%Y%m%d%H%M%S", local_time);
+    return strdup(time_string);
+}
+
+struct PCB *generatePCB(int start){
+	struct PCB *new_pcb = (struct PCB*) malloc(sizeof(struct PCB));
+	new_pcb->pid = generatePID();
+	new_pcb->start = start;
+	new_pcb->current = start;
+	new_pcb->length = 0;
+	new_pcb->score = 0;
+
+	return new_pcb;
+}
+
+struct node *generateNode(){
+	struct node *new_node = (struct node*) malloc(sizeof(struct node));
+
+	return new_node;
+}
 
 // Shell memory functions
 
 void mem_init(){
-
+	
 	int i;
 	for (i=0; i<1000; i++){		
 		shellmemory[i].var = "none";
@@ -44,12 +75,73 @@ void mem_init(){
 	}
 }
 
+int memory_set_process(FILE *p){
+	//needs to know where to write in memory: main pointer
+	// needs to know where to stop i=389.
+	// File *p to get each line from // or it can be the string representing the line each time
+	if (tracker==420){
+		printf("No longer any space to store more processes.\n");
+		return 1;
+	}
+
+	//we create a PCB for the process that will be loaded
+	struct PCB *myPCB;
+	if (head->Content == NULL){
+		myPCB = generatePCB(tracker);
+		head->Content = myPCB;
+	} else {
+		struct node *ptr = head;
+		while (ptr->next!=NULL){
+			ptr = ptr->next;
+		} //once we hit NULL, it means that we're at the tail of the queue
+		myPCB = generatePCB(tracker);
+		struct node *newNode = generateNode();
+		
+		newNode->Content = myPCB;
+		newNode->next = NULL;
+		ptr->next = newNode;
+	}
+
+	char line[100];
+	if (fgets(line, 99, p) == NULL) {
+        printf("Failed to read line from file.\n");
+        return 1;
+    }
+
+	int i;
+	for (i=0; i<140; i++){ //each script will be at most 140 lines long
+		//char to_str[15];
+		char *to_str = malloc(sizeof(char) * 15);
+		sprintf(to_str, "%d", i);
+
+		shellmemory[tracker].var = strdup(to_str); //each varName will be the line number
+		shellmemory[tracker].value = strdup(line); //cus line will be reset
+		//when the program is done running, we will come back and use free() on both
+		memset(line, 0, sizeof(line));
+		free(to_str);
+		tracker++;
+
+		if (tracker==420){
+			printf("No longer any space to store more processes.\n");
+			return 1;
+		}
+		if(feof(p)){
+			break;
+		}
+		fgets(line,99,p);
+	} //i will count the number of lines for us, so we use it
+	myPCB->length = i;
+	myPCB->score = i;
+
+	return 0;
+}
+
 // Set key value pair
 void mem_set_value(char *var_in, char *value_in) {
 	
 	int i;
 
-	for (i=0; i<1000; i++){
+	for (i=420; i<1000; i++){
 		if (strcmp(shellmemory[i].var, var_in) == 0){
 			shellmemory[i].value = strdup(value_in);
 			return;
@@ -57,7 +149,7 @@ void mem_set_value(char *var_in, char *value_in) {
 	}
 
 	//Value does not exist, need to find a free spot.
-	for (i=0; i<1000; i++){
+	for (i=420; i<1000; i++){
 		if (strcmp(shellmemory[i].var, "none") == 0){
 			shellmemory[i].var = strdup(var_in);
 			shellmemory[i].value = strdup(value_in);
@@ -73,7 +165,7 @@ void mem_set_value(char *var_in, char *value_in) {
 char *mem_get_value(char *var_in) {
 	int i;
 
-	for (i=0; i<1000; i++){
+	for (i=420; i<1000; i++){
 		if (strcmp(shellmemory[i].var, var_in) == 0){
 
 			return strdup(shellmemory[i].value);
@@ -82,4 +174,15 @@ char *mem_get_value(char *var_in) {
 	return "Variable does not exist";
 	//for assignment2 we might change this to return NULL;
 
+}
+
+void clear_slot(int slot){
+	free(shellmemory[slot].var);
+	free(shellmemory[slot].value);
+	shellmemory[slot].var = "none";
+	shellmemory[slot].value = "none";
+} //this is to be used after a line inside a process is executed
+
+struct memory_struct *get_mem_struct(int index){
+	return &shellmemory[index];
 }

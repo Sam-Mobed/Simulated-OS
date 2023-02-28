@@ -4,14 +4,19 @@
 #include <unistd.h>
 #include "interpreter.h"
 #include "shellmemory.h"
+#include "shell.h"
 
 int MAX_USER_INPUT = 1000;
-int parseInput(char ui[]);
+//int parseInput(char ui[]);
+struct node *head = NULL;
 
 // Start of everything
 int main(int argc, char *argv[]) {
 	printf("%s\n", "Shell version 1.2 Created January 2023");
-	help();
+	//help();
+    head = (struct node*) malloc(sizeof(struct node)); //initialize the queue
+    head->Content=NULL;
+    head->next=NULL;
 
 	char prompt = '$';  				// Shell prompt
 	char userInput[MAX_USER_INPUT];		// user's input stored here
