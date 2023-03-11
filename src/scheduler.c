@@ -5,7 +5,9 @@
 #include "scheduler.h"
 #include "shell.h"
 
-void remove_node(struct node *ptr);
+//void remove_node(struct node *ptr);
+void remove_pcb(struct PCB *ptr);
+void reset_queue();
 
 void execute_processes(enum policy pol){
 	switch(pol){
@@ -22,16 +24,15 @@ void execute_processes(enum policy pol){
 			execute_AGING();
 			break;
 		default:
-			printf("Invalid policy.\n");
 			break;
 	}
 }
 
 void execute_FCFS (){
 	struct PCB *pcb = head->Content;
-	struct node *ptr = head;
 	int current = pcb->start;
 	int end = current+(pcb->length);
+	struct node *execute = head;
 	
 	while (1){
 		//we need to load the PCB for each,
@@ -44,26 +45,31 @@ void execute_FCFS (){
 			current++;
 		}
 
-		free(pcb); //the pcb of the process that was executed is cleared
-		struct node *oldHead = ptr;
-		if (oldHead->next==NULL){
-			free(oldHead); //the node that held the pcb is freed
-			head->Content=NULL;
-			head->next=NULL;
+		//this if statement is new
+		if(execute->next==NULL){
 			break;
-		}else{ //fix this
-			head=ptr->next;
-			ptr=ptr->next;
-			free(oldHead);
+		}else{
+			execute=execute->next;
 		}
-		pcb = ptr->Content;
+
+		pcb = execute->Content;
 		current=pcb->start;
 		end=current+(pcb->length);
 		//once each process is done executing, we need to 
 		//delete its line from memory, deletee its pcb and remove it from queue
 	}
+	reset_tracker();
+	reset_queue();
 }
 
+void execute_RR (){
+	return;
+}
+
+void execute_SJF (){
+	return;
+}
+/*
 struct node *SJF_helper(){
 	struct node *ptr = head;
 	int smallestLen = 200;
@@ -153,11 +159,12 @@ void execute_RR (){
 		}
 	}
 }
+*/
 
 void execute_AGING (){
 	return;
 }
-
+/*
 void remove_node(struct node *ptr){
 	//first we need to find the node that is pointing to it.
 	if (head->Content==NULL){
@@ -178,4 +185,26 @@ void remove_node(struct node *ptr){
 	struct node *nezt = ptr->next;
 	p->next = nezt;
 	free(ptr);
+}
+*/
+
+void remove_pcb(struct PCB *ptr){
+	free(ptr->pid); //remember how we used malloc to generate PID, now we have to free that memory
+	free(ptr); //we free the memory allocated for the struct itself
+}
+
+void reset_queue(){
+	struct node *ptr = head->next;
+	struct node *current = ptr;
+	if (ptr!=NULL){
+		while (ptr->next!=NULL){
+		ptr=ptr->next;
+		remove_pcb(current->Content);
+		free(current);
+		current=ptr;
+		}
+	}
+	remove_pcb(head->Content);
+	head->Content=NULL;
+	head->next=NULL;
 }

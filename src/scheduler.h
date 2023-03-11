@@ -9,7 +9,8 @@ enum policy{
 	FCFS,
 	SJF,
 	RR,
-	AGING
+	AGING,
+	UNKNOWN
 };
 
 void execute_processes(enum policy pol);

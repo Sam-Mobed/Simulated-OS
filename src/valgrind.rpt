@@ -1,0 +1,138 @@
+==657328== Memcheck, a memory error detector
+==657328== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==657328== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==657328== Command: ./mysh
+==657328== Parent PID: 563182
+==657328== 
+==657328== Invalid read of size 1
+==657328==    at 0x491E443: strtok_r (strtok_r.c:47)
+==657328==    by 0x109A24: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==  Address 0x4aa5327 is 7 bytes inside a block of size 8 free'd
+==657328==    at 0x484B27F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x10AFAB: clear_slot (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0EB: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A70B: run (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109EB4: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==  Block was alloc'd at
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10ACBB: memory_set_process (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A6EC: run (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109EB4: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 
+==657328== HEAP SUMMARY:
+==657328==     in use at exit: 762 bytes in 57 blocks
+==657328==   total heap usage: 462 allocs, 405 frees, 72,773 bytes allocated
+==657328== 
+==657328== 6 bytes in 1 blocks are definitely lost in loss record 4 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AEB4: mem_set_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A65D: set (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E08: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 6 bytes in 1 blocks are definitely lost in loss record 5 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AF46: mem_get_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109F3A: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 13 bytes in 1 blocks are definitely lost in loss record 6 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AEB4: mem_set_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A65D: set (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E08: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0E1: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A70B: run (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109EB4: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 55 (16 direct, 39 indirect) bytes in 1 blocks are definitely lost in loss record 10 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x10AA7A: generateNode (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10ABC9: memory_set_process (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A759: exec (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A4B1: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 63 bytes in 5 blocks are definitely lost in loss record 11 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AE20: mem_set_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A65D: set (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E08: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0E1: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A70B: run (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109EB4: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 120 bytes in 8 blocks are definitely lost in loss record 12 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AF46: mem_get_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A694: print (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E5E: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0E1: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A70B: run (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109EB4: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 155 bytes in 13 blocks are definitely lost in loss record 13 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AE20: mem_set_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A65D: set (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E08: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0E1: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A4D6: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== 300 bytes in 20 blocks are definitely lost in loss record 14 of 14
+==657328==    at 0x4848899: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==657328==    by 0x491D60E: strdup (strdup.c:42)
+==657328==    by 0x10AF46: mem_get_value (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A694: print (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109E5E: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B0E1: execute_FCFS (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10B061: execute_processes (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x10A4D6: interpreter (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109995: parseInput (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328==    by 0x109751: main (in /home/2022/smobed/comp310-winter23/src/mysh)
+==657328== 
+==657328== LEAK SUMMARY:
+==657328==    definitely lost: 679 bytes in 50 blocks
+==657328==    indirectly lost: 39 bytes in 2 blocks
+==657328==      possibly lost: 0 bytes in 0 blocks
+==657328==    still reachable: 44 bytes in 5 blocks
+==657328==         suppressed: 0 bytes in 0 blocks
+==657328== Reachable blocks (those to which a pointer was found) are not shown.
+==657328== To see them, rerun with: --leak-check=full --show-leak-kinds=all
+==657328== 
+==657328== For lists of detected and suppressed errors, rerun with: -s
+==657328== ERROR SUMMARY: 13 errors from 9 contexts (suppressed: 0 from 0)

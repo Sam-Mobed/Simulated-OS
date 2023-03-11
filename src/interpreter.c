@@ -206,12 +206,19 @@ int interpreter(char* command_args[], int args_size){
 
 	}else if(strcmp(command_args[0], "exec")==0){
 		if (args_size < 3) return badcommand(args_size);
-		int result;
-		for (int i=1;i<args_size-1;i++){
-			result = exec(command_args[i]);
+		if (args_size > 5) return badcommand(args_size);
+		enum policy pol = setPolicy(command_args[args_size-1]);
+
+		if (pol==UNKNOWN){
+			printf("Invalid policy.\n");
+			return 1;
 		}
-		execute_processes(setPolicy(command_args[args_size-1]));
-		return result;
+		for (int i=1;i<args_size-1;i++){
+			//result = exec(command_args[i]);
+			exec(command_args[i]);
+		}
+		execute_processes(pol);
+		return 0;
 	}else return badcommand(args_size);
 }
 
@@ -229,6 +236,7 @@ run SCRIPT.TXT         Executes the file SCRIPT.TXT\n ";
 
 int quit(){
 	printf("%s\n", "Bye!");
+	free(head); //we get rid of the memory alllocated to the head
 	exit(0);
 }
 
@@ -259,8 +267,9 @@ int run(char* script){
 	int result = memory_set_process(p);
 	fclose(p);
 	
-	//execute_processes(FCFS);
-	execute_processes(SJF);
+	if (result==0){ //to make sure the code inside the script has been stored properly. 
+		execute_processes(FCFS);
+	}
 	
 	return result;
 }
@@ -278,7 +287,6 @@ int exec(char* script){
 }
 
 enum policy setPolicy(char *str){
-	enum Undefined{UNK};
 	if (strcmp(str, "FCFS")==0){
 		return FCFS;
 	}else if (strcmp(str, "SJF")==0){
@@ -288,6 +296,6 @@ enum policy setPolicy(char *str){
 	}else if (strcmp(str, "AGING")==0){
 		return AGING;
 	}else{
-		return UNK;
+		return UNKNOWN;
 	}//this will print invalid policy in the next function call
 }
