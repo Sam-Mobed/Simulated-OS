@@ -182,10 +182,12 @@ char *mem_get_value(char *var_in) {
 }
 
 void clear_slot(int slot){
-	free(shellmemory[slot].var);
-	free(shellmemory[slot].value);
-	shellmemory[slot].var = "none";
-	shellmemory[slot].value = "none";
+	if (strcmp(shellmemory[slot].var,"none")){
+		free(shellmemory[slot].var);
+		free(shellmemory[slot].value);
+		shellmemory[slot].var = "none";
+		shellmemory[slot].value = "none";
+	}
 } //this is to be used after a line inside a process is executed
 
 struct memory_struct *get_mem_struct(int index){
@@ -198,7 +200,16 @@ void reset_tracker(){
 
 void clear_memory(){
 
-	for (int i=420; i<1000; i++){
+	for (int i=0; i<1000; i++){
+		if (strcmp(shellmemory[i].var, "none") != 0){
+			free(shellmemory[i].var);
+			free(shellmemory[i].value);
+		} 
+	}
+}
+
+void clear_processes_data(){
+	for (int i=0; i<420; i++){
 		if (strcmp(shellmemory[i].var, "none") != 0){
 			free(shellmemory[i].var);
 			free(shellmemory[i].value);

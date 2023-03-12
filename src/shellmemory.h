@@ -27,6 +27,7 @@ void clear_slot(int slot);
 struct memory_struct *get_mem_struct(int index);
 void reset_tracker();
 void clear_memory();
+void clear_processes_data();
 
 //extern struct memory_struct shellmemory[1000];
 

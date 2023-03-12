@@ -68,6 +68,7 @@ int parseInput(char ui[]) {
     const char sep[2] = ";";
     char *token;
     token = strtok(ui,sep);
+    
 
     while(token!=NULL){
         for(a=0; token[a]==' ' && a<1000; a++);        // skip white spaces

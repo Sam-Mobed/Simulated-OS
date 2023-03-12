@@ -126,6 +126,7 @@ int interpreter(char* command_args[], int args_size){
 				return 0; //but to avoid this we would likely have to add a function to shellmemory.
 			} else{
 				printf("%s\n",value);
+				free(value); //remove if it causes problems
 				return 0;
 			}
 		}
@@ -186,6 +187,7 @@ int interpreter(char* command_args[], int args_size){
 			}else{
 				mkdirError();
 			}
+			free(dname); //remove if need be
 		}
 	}else if(strcmp(command_args[0], "my_touch")==0){
 		if (args_size != 2) return badcommand(args_size);
@@ -208,6 +210,7 @@ int interpreter(char* command_args[], int args_size){
 		if (args_size < 3) return badcommand(args_size);
 		if (args_size > 5) return badcommand(args_size);
 		enum policy pol = setPolicy(command_args[args_size-1]);
+		int result = 0; //
 
 		if (pol==UNKNOWN){
 			printf("Invalid policy.\n");
@@ -215,10 +218,17 @@ int interpreter(char* command_args[], int args_size){
 		}
 		for (int i=1;i<args_size-1;i++){
 			//result = exec(command_args[i]);
-			exec(command_args[i]);
+			result = exec(command_args[i]);
 		}
-		execute_processes(pol);
-		return 0;
+		if (result==0){ //you can remove this
+			execute_processes(pol);
+		}else{
+			reset_queue();
+			reset_tracker();
+			clear_processes_data();
+		}
+		//execute_processes(pol);
+		return result; //just return 0
 	}else return badcommand(args_size);
 }
 
@@ -259,7 +269,10 @@ int set(char* var, char* value){
 }
 
 int print(char* var){
-	printf("%s\n", mem_get_value(var)); 
+	char *x = mem_get_value(var);
+	//printf("%s\n", mem_get_value(var));
+	printf("%s\n", x); 
+	free(x);
 	return 0;
 }
 

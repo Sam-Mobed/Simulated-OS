@@ -18,6 +18,8 @@ void execute_FCFS ();
 void execute_SJF ();
 void execute_RR ();
 void execute_AGING ();
+
+void reset_queue();
 //void remove_node(struct node *ptr);
 //this causes an issue since it doesnt have access to node 
 //definition inside this header file, but we don't need this here anyway.
