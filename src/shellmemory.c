@@ -124,6 +124,7 @@ int memory_set_process(FILE *p){
 		memset(to_str, 0, sizeof(char) * 15); // clear the memory
 		
 		tracker++;
+		myPCB->length++;
 
 		if (tracker==420){
 			printf("No longer any space to store more processes.\n");
@@ -136,9 +137,7 @@ int memory_set_process(FILE *p){
 	} //i will count the number of lines for us, so we use it
 	free(to_str);
 
-	myPCB->length = i+1;
-	myPCB->score = i+1;
-
+	myPCB->score = myPCB->length;
 	return 0;
 }
 

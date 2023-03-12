@@ -29,15 +29,14 @@ void execute_processes(enum policy pol){
 }
 
 void execute_FCFS (){
-	struct PCB *pcb = head->Content;
-	int current = pcb->start;
-	int end = current+(pcb->length);
 	struct node *execute = head;
+	struct PCB *pcb;
+	int current, end;
 	
 	while (1){
-		//we need to load the PCB for each,
-		//iterate through the slots and call the interpreter
-		//for each line
+		pcb = execute->Content;
+		current = pcb->start;
+		end = current+(pcb->length);
 
 		while(current<end){
 			parseInput(get_mem_struct(current)->value);
@@ -51,10 +50,6 @@ void execute_FCFS (){
 		}else{
 			execute=execute->next;
 		}
-
-		pcb = execute->Content;
-		current=pcb->start;
-		end=current+(pcb->length);
 		//once each process is done executing, we need to 
 		//delete its line from memory, deletee its pcb and remove it from queue
 	}
@@ -62,28 +57,13 @@ void execute_FCFS (){
 	reset_queue();
 }
 
-struct node *SJF_Helper(){
-	struct node *ptr = head;
-	int shortestLen = 200; //impossble to not have anything smaller
-	struct node *execute = ptr;
-
-	while(ptr->next!=NULL){
-		if (ptr->Content->length<shortestLen){
-			shortestLen = ptr->Content->length;
-			execute = ptr;
-		}
-		ptr=ptr->next;
-	}
-	return execute;
-}
-
 void remove_node(struct node *ptr){
 	if (head->next==NULL){
 		free(head->Content->pid);
 		free(head->Content);
 		head->Content=NULL;
-		head->next=NULL;
-	}else if (head==ptr){
+		head->next=NULL; //redundant but wtv
+	}else if (head==ptr){ //shouldn't we remove this
 		head=head->next;
 		free(ptr->Content->pid);
 		free(ptr->Content);
@@ -100,16 +80,45 @@ void remove_node(struct node *ptr){
 	}
 }
 
+void sortedQueue() {
+    if (head->Content == NULL || head->next == NULL) {
+        return;
+    }
+    int swapped = 1;
+    while (swapped) {
+        swapped = 0;
+        struct node *current = head;
+        struct node *prev = NULL;
+        while (current->next != NULL) {
+            struct node *next = current->next;
+            if (current->Content->length > next->Content->length) {
+                if (prev == NULL) {
+                    head = next;
+                } else {
+                    prev->next = next;
+                }
+                current->next = next->next;
+                next->next = current;
+                swapped = 1;
+                break;
+            }
+            prev = current;
+            current = next;
+        }
+    }
+}
+
 void execute_SJF (){
-	struct node *execute = SJF_Helper();
-	struct PCB *pcb = execute->Content;
-	int current = pcb->start;
-	int end = current+(pcb->length);
+	sortedQueue();
+
+	struct node *execute = head;
+	struct PCB *pcb;
+	int current, end;
 	
-	while (head->Content!=NULL){
-		//we need to load the PCB for each,
-		//iterate through the slots and call the interpreter
-		//for each line
+	while (1){
+		pcb = execute->Content;
+		current = pcb->start;
+		end = current+(pcb->length);
 
 		while(current<end){
 			parseInput(get_mem_struct(current)->value);
@@ -117,140 +126,163 @@ void execute_SJF (){
 			current++;
 		}
 
-		//now we remove a node
-		remove_node(execute);
-		execute=SJF_Helper();
-
-		pcb = execute->Content;
-		current=pcb->start;
-		end=current+(pcb->length);
+		//this if statement is new
+		if(execute->next==NULL){
+			break;
+		}else{
+			execute=execute->next;
+		}
 		//once each process is done executing, we need to 
 		//delete its line from memory, deletee its pcb and remove it from queue
 	}
 	reset_tracker();
+	reset_queue();
 }
 
-void execute_RR (){
-	return;
-}
-/*
-struct node *SJF_helper(){
-	struct node *ptr = head;
-	int smallestLen = 200;
-	struct node *execute = ptr;
-
-	while(ptr->next!=NULL){
-		int len = ptr->Content->length;
-		if (len<smallestLen){
-			smallestLen = len;
-			execute=ptr;
-		}
-		ptr = ptr->next;
-	}
-	return execute;
-}
-
-void execute_SJF (){
-
-	struct node *execute = SJF_helper();
-	struct PCB *exec = execute->Content;
-
-	while(1){
-		int current = exec->start;
-		int end = current+(exec->length);
-
-		while(current<end){
-			parseInput(get_mem_struct(current)->value);
-			clear_slot(current); //each line is cleared
-			current++;
-		}
-
-		free(exec); //the pcb of the process that was executed is cleared
-		remove_node(execute);
-		if (head->Content==NULL){
-			break;
-		}
-		execute=SJF_helper();
-		exec=execute->Content;
-	}
-}
-
-struct node *RR_findNextNode(struct node *ptr){
-	if (ptr->next!=NULL){
-		return ptr->next;
-	}else{
+struct node *RR_helper(struct node *ptr){
+	if (head->next==NULL){
 		return head;
+	}else if (ptr->next==NULL){
+		return head;
+	}else{
+		return ptr->next;
 	}
 }
 
 void execute_RR (){
 	struct node *execute = head;
-	struct PCB *exec = execute->Content;
-	int current = exec->current;
-	int end = current+(exec->length);
+	struct PCB *pcb = execute->Content;
+	int current = pcb->current;
+	int end = current+(pcb->length);
+	int delta = 2;
+	int counter;
+	
+	while (head->Content!=NULL){
+		counter = 0;
 
-	while(1){
-		int original_current = current;
-		for(int i=current;i<original_current+2 && i<end;i++){
+		while(current<end && counter<2){
 			parseInput(get_mem_struct(current)->value);
 			clear_slot(current); //each line is cleared
 			current++;
-			exec->length--; //to be able to accurately calculate the end
+			counter++;
+			pcb->current++;
+			pcb->length--;
 		}
-
-		if(head->next==NULL){
-			if (current!=end){
-				continue;
+		
+		if (current==end){
+			if(head->next==NULL){
+				remove_node(execute);
+				break;
 			}else{
-				free(exec);
-				head->Content=NULL;
+				//remove_node and get the next one.
+				struct node *tmp = execute;
+				execute = RR_helper(execute);
+				remove_node(tmp);
 			}
 		}else{
-			if (current!=end){
-				execute = RR_findNextNode(execute);
-				exec = execute->Content;
-				current = exec->current;
-				end = current+(exec->length);
-			}else{
-				free(exec);
-				struct node *remove = execute;
-				execute = RR_findNextNode(execute);
-				remove_node(remove);
-				exec = execute->Content;
-				current = exec->current;
-				end = current+(exec->length);
-			}
+			execute = RR_helper(execute);
 		}
-	}
-}
-*/
 
-void execute_AGING (){
-	return;
+		pcb = execute->Content;
+		current = pcb->current;
+		end = current+(pcb->length);
+	}
+	reset_tracker();
+	//reset_queue();
 }
-/*
-void remove_node(struct node *ptr){
-	//first we need to find the node that is pointing to it.
-	if (head->Content==NULL){
-		return; //the Linked list is already empty
-	}else if (head->next==NULL){ // only the head was left
-		head->Content=NULL;
+
+void ageNodesExecept(struct node *p){
+	struct node *ptr = head;
+	if (head->next==NULL){
 		return;
 	}
-	struct node *p = head;
-	
-	while(p->next!=NULL){ //we find the node before ptr
-		if (p->next==ptr){
-			break;
+	while(ptr->next!=NULL){
+		if (ptr==p || ptr->Content->score==0){
+			ptr=ptr->next;
+			continue;
 		}
-		p=p->next;
+		ptr->Content->score--;
+		ptr=ptr->next;
 	}
-	//the node after the one we want to remove
-	struct node *nezt = ptr->next;
-	p->next = nezt;
-	free(ptr);
 }
-*/
+
+void ageNodes(){
+	if (head->next==NULL){
+		return;
+	}
+	struct node *ptr = head->next;
+	while(ptr!=NULL){
+		if (ptr->Content->score==0){
+			ptr=ptr->next;
+			continue;
+		}
+		ptr->Content->score--;
+		ptr=ptr->next;
+	}
+}
+
+void sortedQueuebyScore() {
+    if (head->Content == NULL || head->next == NULL) {
+        return;
+    }
+    int swapped = 1;
+    while (swapped) {
+        swapped = 0;
+        struct node *current = head;
+        struct node *prev = NULL;
+        while (current->next != NULL) {
+            struct node *next = current->next;
+            if (current->Content->score > next->Content->score) {
+                if (prev == NULL) {
+                    head = next;
+                } else {
+                    prev->next = next;
+                }
+                current->next = next->next;
+                next->next = current;
+                swapped = 1;
+                break;
+            }
+            prev = current;
+            current = next;
+        }
+    }
+}
+
+void execute_AGING (){
+	sortedQueuebyScore();
+
+	struct node *execute;
+	struct PCB *pcb;
+	int current, end;
+	
+	while (head->Content!=NULL){
+		execute = head;
+		pcb = execute->Content;
+		current = pcb->current;
+		end = current+(pcb->length);
+
+		parseInput(get_mem_struct(current)->value);
+		clear_slot(current); //each line is cleared
+		current++;
+		pcb->current++;
+		pcb->length--;
+		
+		
+		if (current==end){
+			if(head->next==NULL){
+				remove_node(execute);
+				break;
+			}else{
+				//remove_node and get the next one.
+				remove_node(execute);
+			}
+		}
+		ageNodes();
+		sortedQueuebyScore();
+	}
+	reset_tracker();
+}
 
 void remove_pcb(struct PCB *ptr){
 	free(ptr->pid); //remember how we used malloc to generate PID, now we have to free that memory
