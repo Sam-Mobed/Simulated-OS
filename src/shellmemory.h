@@ -26,6 +26,7 @@ void mem_set_value(char *var, char *value);
 void clear_slot(int slot);
 struct memory_struct *get_mem_struct(int index);
 void reset_tracker();
+void clear_memory();
 
 //extern struct memory_struct shellmemory[1000];
 

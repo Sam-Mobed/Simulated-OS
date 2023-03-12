@@ -236,7 +236,12 @@ run SCRIPT.TXT         Executes the file SCRIPT.TXT\n ";
 
 int quit(){
 	printf("%s\n", "Bye!");
+	if(head->Content!=NULL){
+		free(head->Content->pid); //if for some reason there is still something
+		free(head->Content); //this might be completely useless
+	}
 	free(head); //we get rid of the memory alllocated to the head
+	clear_memory();
 	exit(0);
 }
 

@@ -196,3 +196,13 @@ struct memory_struct *get_mem_struct(int index){
 void reset_tracker(){
 	tracker=0;
 }
+
+void clear_memory(){
+
+	for (int i=420; i<1000; i++){
+		if (strcmp(shellmemory[i].var, "none") != 0){
+			free(shellmemory[i].var);
+			free(shellmemory[i].value);
+		} 
+	}
+}

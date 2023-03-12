@@ -62,11 +62,75 @@ void execute_FCFS (){
 	reset_queue();
 }
 
-void execute_RR (){
-	return;
+struct node *SJF_Helper(){
+	struct node *ptr = head;
+	int shortestLen = 200; //impossble to not have anything smaller
+	struct node *execute = ptr;
+
+	while(ptr->next!=NULL){
+		if (ptr->Content->length<shortestLen){
+			shortestLen = ptr->Content->length;
+			execute = ptr;
+		}
+		ptr=ptr->next;
+	}
+	return execute;
+}
+
+void remove_node(struct node *ptr){
+	if (head->next==NULL){
+		free(head->Content->pid);
+		free(head->Content);
+		head->Content=NULL;
+		head->next=NULL;
+	}else if (head==ptr){
+		head=head->next;
+		free(ptr->Content->pid);
+		free(ptr->Content);
+		free(ptr);
+	}else{
+		struct node *p = head;
+		while(p->next!=ptr){
+			p=p->next; //this will get us the node before the one we want to remvoe. 
+		}
+		p->next=ptr->next; //the one before ptr will point to the node after it
+		free(ptr->Content->pid);
+		free(ptr->Content);
+		free(ptr);
+	}
 }
 
 void execute_SJF (){
+	struct node *execute = SJF_Helper();
+	struct PCB *pcb = execute->Content;
+	int current = pcb->start;
+	int end = current+(pcb->length);
+	
+	while (head->Content!=NULL){
+		//we need to load the PCB for each,
+		//iterate through the slots and call the interpreter
+		//for each line
+
+		while(current<end){
+			parseInput(get_mem_struct(current)->value);
+			clear_slot(current); //each line is cleared
+			current++;
+		}
+
+		//now we remove a node
+		remove_node(execute);
+		execute=SJF_Helper();
+
+		pcb = execute->Content;
+		current=pcb->start;
+		end=current+(pcb->length);
+		//once each process is done executing, we need to 
+		//delete its line from memory, deletee its pcb and remove it from queue
+	}
+	reset_tracker();
+}
+
+void execute_RR (){
 	return;
 }
 /*
