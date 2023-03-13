@@ -17,6 +17,17 @@ int compareStrings(const void *str1, const void *str2){
 	return strcmp(*(const char**)str1, *(const char**)str2);
 }
 
+int checkFileNames(char* arr[], int size){
+	for (int i = 1; i < size-1; i++) {
+        for (int j = i + 1; j < size-1; j++) {
+            if (strcmp(arr[i], arr[j]) == 0) {
+                return 1;
+            }
+        }
+    }
+	return 0;
+}
+
 //for too many tokens in set
 int tooManyTokens(){
 	printf("%s\n", "Bad command: Too many tokens");
@@ -46,6 +57,11 @@ int badcommand(int args_size){
 int badcommandFileDoesNotExist(){
 	printf("%s\n", "Bad command: File not found");
 	return 3;
+}
+
+int sameFileName(){
+	printf("%s\n", "Bad command: same file name");
+	return 9;
 }
 
 int help();
@@ -211,6 +227,11 @@ int interpreter(char* command_args[], int args_size){
 		if (args_size > 5) return badcommand(args_size);
 		enum policy pol = setPolicy(command_args[args_size-1]);
 		int result = 0; //
+		//first we have to check if two/more files of the same name have been passed
+		result = checkFileNames(command_args, args_size);
+		if (result!=0){
+			return sameFileName();
+		}
 
 		if (pol==UNKNOWN){
 			printf("Invalid policy.\n");
@@ -222,7 +243,7 @@ int interpreter(char* command_args[], int args_size){
 		}
 		if (result==0){ //you can remove this
 			execute_processes(pol);
-		}else{
+		}else{ //incase one of the files does not exist.
 			reset_queue();
 			reset_tracker();
 			clear_processes_data();

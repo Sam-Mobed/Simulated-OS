@@ -12,7 +12,7 @@ struct node *head = NULL;
 
 // Start of everything
 int main(int argc, char *argv[]) {
-	printf("%s\n", "Shell version 1.2 Created January 2023");
+	printf("%s\n\n", "Shell version 1.2 Created January 2023");
 	//help();
     head = (struct node*) malloc(sizeof(struct node)); //initialize the queue
     head->Content=NULL;
