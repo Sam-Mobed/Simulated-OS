@@ -56,8 +56,14 @@ int badcommand_ready_queue_full(){
 	return 1;
 }
 
+/*
 int badcommand_same_file_name(){
 	printf("%s\n", "Bad command: same file name");
+	return 1;
+}
+*/
+int badcommand_fname_null(){
+	printf("%s\n", "Bad command: first filename is null");
 	return 1;
 }
 
@@ -293,6 +299,7 @@ int run(char* script){
 }
 
 int exec(char *fname1, char *fname2, char *fname3, char* policy, bool background, bool mt){
+	/*
 	if(fname2!=NULL){
 		if(strcmp(fname1,fname2)==0){
 			return badcommand_same_file_name();
@@ -303,6 +310,10 @@ int exec(char *fname1, char *fname2, char *fname3, char* policy, bool background
 			return badcommand_same_file_name();
 		}
 		
+	} since now you can pass the same argument multiple times
+	*/
+	if (fname1==NULL){
+		return badcommand_fname_null();
 	}
 	int error_code = 0;
 	if(background) error_code = shell_process_initialize();

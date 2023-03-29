@@ -30,18 +30,42 @@ enum policy setPolicy(char *str){
 	}//this will print invalid policy in the next function call
 }
 
+void initializeBackingStore(){
+    char *dir = "BackingStore";
+    DIR* dirPtr = opendir(dir);
+    char *command;
+	struct dirent *entry; //to check if directory is empty
+    
+    if (dirPtr){
+		int empty = 1;
+        while ((entry = readdir(dirPtr)) != NULL){
+            if (entry->d_name[0] != '.'){
+                empty = 0;
+                break;
+            }
+        }
+		
+		if(!empty){
+			command = (char*) calloc(1, 21);
+			strncat(command, "rm -r ", 7);
+			strncat(command, dir, strlen(dir));
+			strncat(command, "/*", 3);
+			system(command);
+			free(command);
+		}
+    }else{
+        command = (char*) calloc(1, 20); 
+        strncat(command, "mkdir ", 7);
+        strncat(command, dir, strlen(dir));
+		system(command);
+		free(command);
+    }
+	closedir(dirPtr);
+}
 
 int main(int argc, char *argv[]){
-    char *command_args[4] = {"exec","in.txt", "in2.txt","FCFS"};
-    int args_size = 4;
-    enum policy pol = setPolicy(command_args[args_size-1]);
-    
-    if (pol==RR){
-        printf("hi\n");
-    }
 
-    for (int i=1;i<args_size-1;i++){
-			printf("%s\n", command_args[i]);
-	}
+	initializeBackingStore();
+
     return 0;
 }
