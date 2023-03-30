@@ -123,6 +123,7 @@ void printShellMemory(){
  * 
  * returns: error code, 21: no space left
  */
+
 int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
 {
 	char *line;
@@ -182,6 +183,43 @@ int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
 	}
 	//printShellMemory();
     return error_code;
+}
+
+//this new load file function will simply copy the scripts into the backingstore directory
+//if the function is called, then we already know that fp can't be null
+//after the scripts are copied, then the pages are loaded into the frame store
+int load_file_backingStore(char* filename){
+	FILE *sourceFile = fopen(filename, "rb");
+	FILE *destFile;
+    char destPath[100]; // allocate enough space
+	strcpy(destPath, "./BackingStore/"); // copy initial part of the path
+	strcat(destPath, filename); // append filename
+    char buffer[1024];
+    size_t bytesRead;
+
+    // Open source file for reading
+    if (!sourceFile) {
+        printf("Unable to open source file.\n");
+        return 1;
+    }
+
+    // Open destination file for writing
+    destFile = fopen(destPath, "wb");
+    if (!destFile) {
+        printf("Unable to create destination file.\n");
+        return 1;
+    }
+
+    // Read from source file and write to destination file
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), sourceFile)) > 0) {
+        fwrite(buffer, 1, bytesRead, destFile);
+    }
+
+    // Close files
+    fclose(sourceFile);
+    fclose(destFile);
+
+    return 0;
 }
 
 

@@ -38,18 +38,21 @@ int process_initialize(char *filename){
         error_code = 11; // 11 is the error code for file does not exist
         return error_code;
     }
-    error_code = load_file(fp, start, end, filename);
+    //error_code = load_file(fp, start, end, filename);
+    error_code = load_file_backingStore(filename); //we will have another function after this that will set the values for start and end
+    //load_pages = 
     if(error_code != 0){
         fclose(fp);
         return error_code;
     }
+    fclose(fp); //since we will be working with the pointers to copied file, we can close the old ones
     PCB* newPCB = makePCB(*start,*end);
     QueueNode *node = malloc(sizeof(QueueNode));
     node->pcb = newPCB;
     lock_queue();
     ready_queue_add_to_tail(node);
     unlock_queue();
-    fclose(fp);
+    //fclose(fp); we won't need this
     return error_code;
 }
 

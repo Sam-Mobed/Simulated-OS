@@ -63,9 +63,68 @@ void initializeBackingStore(){
 	closedir(dirPtr);
 }
 
+int load_file_backingStore(char* filename){
+	FILE *sourceFile = fopen(filename, "rb");
+	FILE *destFile;
+    char destPath[100]; // allocate enough space
+	strcpy(destPath, "./BackingStore/"); // copy initial part of the path
+	strcat(destPath, filename); // append filename
+    char buffer[1024];
+    size_t bytesRead;
+
+    // Open source file for reading
+    if (!sourceFile) {
+        printf("Unable to open source file.\n");
+        return 1;
+    }
+
+    // Open destination file for writing
+    destFile = fopen(destPath, "wb");
+    if (!destFile) {
+        printf("Unable to create destination file.\n");
+        return 1;
+    }
+
+    // Read from source file and write to destination file
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), sourceFile)) > 0) {
+        for (size_t i = 0; i < bytesRead; i++) {
+            if (buffer[i]>=32 && buffer[i]<=126) {
+                fwrite(&buffer[i], 1, 1, destFile);
+            }
+        }
+    }
+
+    // Close files
+    fclose(sourceFile);
+    fclose(destFile);
+
+    return 0;
+}
+
+int contains_unprintable_bytes() {
+    FILE* fp = fopen("./BackingStore/sampletestFile", "rb");
+    if (!fp) {
+        printf("Unable to open file %s\n", "./BackingStore/sampletestFile");
+        return 1;
+    }
+
+    int c;
+    while ((c = fgetc(fp)) != EOF) {
+        if (c < 32 || c > 126) {
+            printf("File %s contains unprintable byte: %02X\n", "./BackingStore/sampletestFile", c);
+            fclose(fp);
+            return 1;
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
 int main(int argc, char *argv[]){
 
 	initializeBackingStore();
-
+	load_file_backingStore("sampletestFile");
+	contains_unprintable_bytes();
     return 0;
 }
