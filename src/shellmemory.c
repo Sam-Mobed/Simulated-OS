@@ -4,6 +4,7 @@
 #include<stdbool.h>
 
 #define SHELL_MEM_LENGTH 1000
+#define STOREPAGES_LENGTH 1000
 
 
 struct memory_struct{
@@ -12,6 +13,7 @@ struct memory_struct{
 };
 
 struct memory_struct shellmemory[SHELL_MEM_LENGTH];
+struct memory_struct pagesMemory[STOREPAGES_LENGTH];
 
 // Helper functions
 int match(char *model, char *var) {
@@ -39,6 +41,14 @@ char *extract(char *model) {
 // Shell memory functions
 
 void mem_init(){
+	int i;
+	for (i=0; i<1000; i++){		
+		shellmemory[i].var = "none";
+		shellmemory[i].value = "none";
+	}
+}
+
+void pages_init(){
 	int i;
 	for (i=0; i<1000; i++){		
 		shellmemory[i].var = "none";

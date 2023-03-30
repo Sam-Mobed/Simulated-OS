@@ -27,6 +27,8 @@ int main(int argc, char *argv[]) {
 	
 	//init shell memory
 	mem_init();
+    //initialize pages memory
+    pages_init();
 
 	while(1) {						
         if (isatty(fileno(stdin))) printf("%c ",prompt);
