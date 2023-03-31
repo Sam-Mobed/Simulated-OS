@@ -316,7 +316,7 @@ int exec(char *fname1, char *fname2, char *fname3, char* policy, bool background
 		return badcommand_fname_null();
 	}
 	int error_code = 0;
-	if(background) error_code = shell_process_initialize();
+	//if(background) error_code = shell_process_initialize(); won't be tested on this anymore so we can comment it out
 	if(fname1 != NULL){
         error_code = process_initialize(fname1);
 		if(error_code != 0){

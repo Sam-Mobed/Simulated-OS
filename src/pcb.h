@@ -14,12 +14,14 @@ typedef struct
 {
     bool priority;
     int pid;
-    int PC;
-    int start;
-    int end;
+    int pageTable[333]; //the maximum number of frames is 333: 1000/3=333. if we were to load one huge process
+    int numFrames;
+    int length;
+    int currentFrame;
+    int currentLine;
     int job_length_score;
 }PCB;
 
 int generatePID();
-PCB * makePCB(int start, int end);
+PCB * makePCB();
 #endif

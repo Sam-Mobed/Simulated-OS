@@ -30,8 +30,8 @@ void unlock_queue(){
 int process_initialize(char *filename){
     FILE* fp;
     int error_code = 0;
-    int* start = (int*)malloc(sizeof(int));
-    int* end = (int*)malloc(sizeof(int));
+    //int* start = (int*)malloc(sizeof(int));
+    //int* end = (int*)malloc(sizeof(int));
     
     fp = fopen(filename, "rt");
     if(fp == NULL){
@@ -46,7 +46,13 @@ int process_initialize(char *filename){
         return error_code;
     }
     fclose(fp); //since we will be working with the pointers to copied file, we can close the old ones
-    PCB* newPCB = makePCB(*start,*end);
+    PCB* newPCB = makePCB();
+
+    char fname[100];
+    strcpy(fname,"./BackingStore/"); //because now we want to work with the copied file
+    strcpy(fname,filename);
+
+    load_file_toFramePage(fname, newPCB); //this will store the content of the file in the frametable and update the fields of the corresponding frameTable
     QueueNode *node = malloc(sizeof(QueueNode));
     node->pcb = newPCB;
     lock_queue();
@@ -55,7 +61,7 @@ int process_initialize(char *filename){
     //fclose(fp); we won't need this
     return error_code;
 }
-
+/* we won't need this anymore
 int shell_process_initialize(){
     //Note that "You can assume that the # option will only be used in batch mode."
     //So we know that the input is a file, we can directly load the file into ram
@@ -76,24 +82,33 @@ int shell_process_initialize(){
     freopen("/dev/tty", "r", stdin);
     return 0;
 }
-
-bool execute_process(QueueNode *node, int quanta){
+*/
+bool execute_process(QueueNode *node, int quanta){ //for now I don't use the quanta arg anymore, but just leave it there in case
     char *line = NULL;
-    PCB *pcb = node->pcb;
-    for(int i=0; i<quanta; i++){
-        line = mem_get_value_at_line(pcb->PC++);
-        in_background = true;
-        if(pcb->priority) {
-            pcb->priority = false;
+    PCB *pcb = node->pcb; //now we need to go frame by frame, line by line.
+    int limit = pcb->numFrames;
+    int i=0;
+
+    while(pcb->currentFrame<limit){
+        for (i=0;i<3;i++){
+            line = frames_get_value_at_line((pcb->pageTable[pcb->currentFrame] * 3)+i);
+            in_background = true;
+            if(pcb->priority) {
+                pcb->priority = false;
+            }
+            if(strcmp(line, "END")!=0){
+                parseInput(line);
+                in_background = false;
+            }
         }
-        if(pcb->PC>pcb->end){
-            parseInput(line);
+        
+        pcb->currentFrame++;
+        
+        if(pcb->currentFrame==limit){
             terminate_process(node);
             in_background = false;
             return true;
         }
-        parseInput(line);
-        in_background = false;
     }
     return false;
 }
