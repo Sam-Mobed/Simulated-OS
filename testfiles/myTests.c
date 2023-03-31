@@ -121,10 +121,39 @@ int contains_unprintable_bytes() {
     return 0;
 }
 
+int getCommands(char *line, char *commands[]){
+	int count=0;
+    const char semic[2]=";";
+	int index=0;//where we are inside the commands array
+    char *token;
+    char *line_copy = strdup(line);
+    token = strtok(line_copy, semic);
+
+    while(token!=NULL && index<10){
+        commands[index]=strdup(token);
+        token=strtok(NULL,semic);
+        index++;
+        count++;
+    }
+    
+    free(line_copy);
+	return count;
+}
+
 int main(int argc, char *argv[]){
 
-	initializeBackingStore();
-	load_file_backingStore("sampletestFile");
-	contains_unprintable_bytes();
+	//initializeBackingStore();
+	//load_file_backingStore("sampletestFile");
+	//contains_unprintable_bytes();
+    char *commandQueue[] = {"X_","X_","X_","X_","X_","X_","X_","X_","X_","X_"}; //up to ten commands in a oneliner
+    char *line="echo hello";
+    //char *line="\n";
+    //char *line="";
+
+    int c = getCommands(line, commandQueue);
+    printf("%d\n",c);
+    for(int i = 0; i < 10; i++){
+      printf("%s\n", commandQueue[i]);
+    }
     return 0;
 }
