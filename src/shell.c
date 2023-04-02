@@ -15,6 +15,11 @@ void initializeBackingStore();
 
 int main(int argc, char *argv[]) {
 	printf("%s\n", "Shell version 1.2 Created January 2023\n");
+    char str[50];
+    int fsize=FSIZE;
+    int vsize=VSIZE;
+    sprintf(str, "Frame Store Size = %d; Variable Store Size = %d",fsize, vsize);
+    printf("%s\n", str);
 
 	char prompt = '$';  				// Shell prompt
 	char userInput[MAX_USER_INPUT];		// user's input stored here

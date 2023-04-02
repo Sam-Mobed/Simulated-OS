@@ -47,7 +47,6 @@ int process_initialize(char *filename){
     }
     fclose(fp); //since we will be working with the pointers to copied file, we can close the old ones
     PCB* newPCB = makePCB();
-
     char fname[100];
     strcpy(fname,"./BackingStore/"); //because now we want to work with the copied file
     strcpy(fname,filename);
@@ -89,20 +88,24 @@ bool execute_process(QueueNode *node, int quanta){ //for now I don't use the qua
     int limit = pcb->numFrames;
     int i=0;
 
-    while(pcb->currentFrame<limit){
-        for (i=0;i<3;i++){
-            line = frames_get_value_at_line((pcb->pageTable[pcb->currentFrame] * 3)+i);
-            in_background = true;
-            if(pcb->priority) {
-                pcb->priority = false;
-            }
-            if(strcmp(line, "END")!=0){
-                parseInput(line);
-                in_background = false;
-            }
-        }
+    while(pcb->currentFrame<limit && i<quanta){
         
-        pcb->currentFrame++;
+        line = frames_get_value_at_line((pcb->pageTable[pcb->currentFrame] * 3)+(pcb->currentLine));
+        in_background = true;
+        if(pcb->priority) {
+            pcb->priority = false;
+        }
+        if(strcmp(line, "END")!=0){
+            parseInput(line);
+            in_background = false;
+        }
+        pcb->currentLine++;
+        i++;
+        if (pcb->currentLine==3){//we're done with the frame
+            pcb->currentFrame++;
+            pcb->currentLine=0;
+        }
+         
         
         if(pcb->currentFrame==limit){
             terminate_process(node);

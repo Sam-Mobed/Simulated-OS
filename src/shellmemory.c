@@ -7,7 +7,6 @@
 #define SHELL_MEM_LENGTH 1000
 #define STOREPAGES_LENGTH 1000
 
-
 struct memory_struct{
 	char *var;
 	char *value;
@@ -245,7 +244,7 @@ void getCommands(char *line, char *commands[]){
 
 //here we iterate through the framePage, and each time we find a 3-line hole, we add a frame
 //if we reach the end of the file, we have to add a line with string END that indicates that there isn't anything left to execute.
-int load_file_toFramePage(char* filename, PCB *pcb){ 
+int load_file_toFramePage(char* filename, PCB *pcb){
 	FILE *sourceFile = fopen(filename, "r");
 	int len=0;
 	char buffer[100];
@@ -255,33 +254,38 @@ int load_file_toFramePage(char* filename, PCB *pcb){
 	char *commandQueue[] = {"X_","X_","X_","X_","X_","X_","X_","X_","X_","X_"}; //up to ten commands in a oneliner
 	int commandsLeft=0;
 	int arrayIndex=0;
+    int indexTracker=0;
+    int frameCounter=0;
 	
 	int counter=0; //to make sure we copy 3 commands to every frame
 	for (int i=0; i<1000; i++){
+        indexTracker=i;
+        
 		if (flag){ //we've reached the end of the file, we're done
 			break;
 		}
-		if (strcmp(frameStore[i].var, "none") == 0){ //this means we have found a hole of three lines, and we can start copying into the frame table
-			pcb->pageTable[pcb->numFrames]=i/3; //in the example if frame starts at 3 or 9, then pagetable has 1 and 3, idk why, so we divide by three
-			pcb->numFrames++;
+		if (strcmp(frameStore[indexTracker].var, "none") == 0){ //this means we have found a hole of three lines, and we can start copying into the frame table
+            pcb->pageTable[frameCounter]=i/3;
+            frameCounter++;
 
 			counter=0;
 			while(commandsLeft && counter!=3){//are there commands left from a previous one-liner that we haven't added to the memory yet, if so copy them
-				frameStore[i].var=strdup("process");
-				frameStore[i].value=strdup(commandQueue[arrayIndex]);
+                frameStore[indexTracker].var=strdup("process");
+				frameStore[indexTracker].value=strdup(commandQueue[arrayIndex]);
 				free(commandQueue[arrayIndex]); //since we used strdup to put a command there
 				commandQueue[arrayIndex]="X_"; //to show that the slot doesnt contain a command
-				len++;
-				i++; //gotta make sure this works
+				indexTracker++;
+                len++;
 				arrayIndex++;
 				counter++;
 				if(arrayIndex==10 || (strcmp(commandQueue[arrayIndex], "X_")==0)){ //if we reach the end of the array, or next element is X_then we are done with the oneliner
 					arrayIndex=0;
 					commandsLeft=0;
+                    break;
 				}
 			}
 
-			while (counter!=3){ //this means there is still space inside the frame
+			while (counter!=3 && !flag){ //this means there is still space inside the frame
 				if(fgets(buffer,100, sourceFile)!=NULL){
 					fputs(buffer, sourceFile);
 					getCommands(buffer, commandQueue); //to check how many commands were in that line.
@@ -290,43 +294,44 @@ int load_file_toFramePage(char* filename, PCB *pcb){
 					//we check inside the array
 					int tracker = 0; //to go through the array
 					while(commandsLeft){ //keep in mind arrayIndex==0 here
-						frameStore[i].var=strdup("process");
-						frameStore[i].value=strdup(commandQueue[tracker]);
+						frameStore[indexTracker].var=strdup("process");
+						frameStore[indexTracker].value=strdup(commandQueue[tracker]);
 						free(commandQueue[tracker]); //since we used strdup to put a command there
 						commandQueue[tracker]="X_"; //to show that the slot doesnt contain a command
 						counter++;
 						len++;
-						i++;
+                        indexTracker++;
 						tracker++;
 						arrayIndex++;
-						
+
+                        if(arrayIndex==10 || (strcmp(commandQueue[arrayIndex], "X_")==0)){ //we've cleared the array
+							arrayIndex=0;
+							commandsLeft=0;
+                            break;
+						}
 						if(counter==3){ //no space left inside the frame, we have to find another one
 							break;
 						}
-						if(arrayIndex==10 || (strcmp(commandQueue[arrayIndex], "X_")==0)){ //we've cleared the array
-							arrayIndex=0;
-							commandsLeft=0;
-						}
 					}
-				}else{
-					frameStore[i].var="END"; //if the script has ended but the frame hasn't then we fill the remaining slots of the frame with END=END 
-					frameStore[i].value="END";
-					i++;
-					flag=1; //so we break out of the outer loop.
+                    if (feof(sourceFile)){
+                        flag=1;
+                    }
+				}
+                if (flag && counter!=3){
+                    while (counter!=3){
+                        frameStore[indexTracker].var="END"; //if the script has ended but the frame hasn't then we fill the remaining slots of the frame with END=END 
+                        frameStore[indexTracker].value="END";
+                        indexTracker++;
+                        counter++;
+                    }
 				}
 			}
+            i=i+2;
 		}
 	}
-
-	/* we assume that there will always be place for the pages of all programs, so we don't need to consider the case where we reach the end of frameStore 
-	if(i==1000){ we're still not done loading a process
-		fclose(sourceFile);
-		return 1;
-	}
-	*/
 	pcb->length=len;
 	pcb->job_length_score=len;
-	pcb->numFrames++; //since we start at 0, to get the actual number
+	pcb->numFrames=frameCounter; //since we start at 0, to get the actual number
 	
 	fclose(sourceFile);
 	return 0;
