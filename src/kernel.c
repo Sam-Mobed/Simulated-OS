@@ -19,6 +19,9 @@ bool debug = false;
 bool in_background = false;
 pthread_mutex_t queue_lock;
 
+int TimeCounter=1; //this will serve as our time for when we access a frame.
+//every time we access a frame in execute_process, this counter gets incremented
+
 void lock_queue(){
     if(multi_threading) pthread_mutex_lock(&queue_lock);
 }
@@ -39,56 +42,41 @@ int process_initialize(char *filename){
         return error_code;
     }
     //error_code = load_file(fp, start, end, filename);
-    error_code = load_file_backingStore(filename); //we will have another function after this that will set the values for start and end
-    //load_pages = 
+    PCB* newPCB = makePCB(filename); //if the same filename is used twice the fname (as pid) will be changed
+    error_code = load_file_backingStore(newPCB); //we will have another function after this that will set the values for start and end 
     if(error_code != 0){
         fclose(fp);
         return error_code;
     }
     fclose(fp); //since we will be working with the pointers to copied file, we can close the old ones
-    PCB* newPCB = makePCB();
-    char fname[100];
-    strcpy(fname,"./BackingStore/"); //because now we want to work with the copied file
-    strcpy(fname,filename);
+    load_fileArchitecture(newPCB);
 
-    load_file_toFramePage(fname, newPCB); //this will store the content of the file in the frametable and update the fields of the corresponding frameTable
-    QueueNode *node = malloc(sizeof(QueueNode));
+    load_file_toFramePage(newPCB, 2, TimeCounter); //this will store the content of the file in the frametable and update the fields of the corresponding frameTable
+    QueueNode *node = malloc(sizeof(QueueNode)); //at the start we only load the first two frames
     node->pcb = newPCB;
     lock_queue();
     ready_queue_add_to_tail(node);
     unlock_queue();
     //fclose(fp); we won't need this
+    //printFrameStore(); //remove this i just want to check if its loaded properly. 
     return error_code;
 }
-/* we won't need this anymore
-int shell_process_initialize(){
-    //Note that "You can assume that the # option will only be used in batch mode."
-    //So we know that the input is a file, we can directly load the file into ram
-    int* start = (int*)malloc(sizeof(int));
-    int* end = (int*)malloc(sizeof(int));
-    int error_code = 0;
-    error_code = load_file(stdin, start, end, "_SHELL");
-    if(error_code != 0){
-        return error_code;
-    }
-    PCB* newPCB = makePCB(*start,*end);
-    newPCB->priority = true;
-    QueueNode *node = malloc(sizeof(QueueNode));
-    node->pcb = newPCB;
-    lock_queue();
-    ready_queue_add_to_head(node);
-    unlock_queue();
-    freopen("/dev/tty", "r", stdin);
-    return 0;
-}
-*/
+
 bool execute_process(QueueNode *node, int quanta){ //for now I don't use the quanta arg anymore, but just leave it there in case
     char *line = NULL;
     PCB *pcb = node->pcb; //now we need to go frame by frame, line by line.
     int limit = pcb->numFrames;
     int i=0;
-
+    
     while(pcb->currentFrame<limit && i<quanta){
+
+        if(pcb->pageTable[pcb->currentFrame]==-2 || pcb->pageTable[pcb->currentFrame]==-1){ //if the frame is missing
+            load_file_toFramePage(pcb, 1, TimeCounter); //now we add it to the tail of the queue and break out of the loop
+            ready_queue_add_to_tail(node);
+            break;
+        }
+        setAccessTime(TimeCounter, pcb->pageTable[pcb->currentFrame]); //since when we store it we divide by 3, here we multiply by three to get the actual location
+        TimeCounter++;
         
         line = frames_get_value_at_line((pcb->pageTable[pcb->currentFrame] * 3)+(pcb->currentLine));
         in_background = true;
@@ -104,8 +92,8 @@ bool execute_process(QueueNode *node, int quanta){ //for now I don't use the qua
         if (pcb->currentLine==3){//we're done with the frame
             pcb->currentFrame++;
             pcb->currentLine=0;
+            
         }
-         
         
         if(pcb->currentFrame==limit){
             terminate_process(node);

@@ -20,4 +20,5 @@ void ready_queue_decrement_job_length_score();
 void sort_ready_queue();
 int ready_queue_get_shortest_job_score();
 void ready_queue_promote(int score);
+int get_leastRecentFrame();
 #endif

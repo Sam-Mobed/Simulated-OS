@@ -1,0 +1,10 @@
+set x 10; echo hi1; echo hi2
+print x; echo h2
+set x 20 bob alice toto xyz
+print x
+set x 12345 20 bob alice toto xyz
+print x
+set y abc def lili
+print y;print x;print x;echo 1
+echo 2
+quit

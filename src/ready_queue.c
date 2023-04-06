@@ -60,7 +60,7 @@ void print_ready_queue(){
     QueueNode *cur = head;
     printf("Ready queue: \n");
     while(cur!=NULL){
-        printf("\tPID: %d, length: %d, priority: %d\n", cur->pcb->pid, cur->pcb->job_length_score, cur->pcb->priority);
+        printf("\tPID: %s, length: %d, priority: %d\n", cur->pcb->pid, cur->pcb->job_length_score, cur->pcb->priority);
         cur = cur->next;
     }
 }
@@ -178,3 +178,53 @@ void ready_queue_promote(int score){
     next->next = head;
     head = next;
 }
+/*
+int get_leastRecentFrame(){
+    //we have to go through every single accesstable (of each pcb)
+    //and find the frame that was accessed the least recent
+    //-1 frame DNE, youve reached the end of the frame table
+    //0: frame has never been accessed, automatically evicted
+    //min_access points to the pcb->pageTable->frame accessed the least early
+    print_ready_queue();
+    QueueNode *cur = head;
+    PCB *curPCB;
+    int smallestAccessTime = 200;
+    int frameSmallestATlocation = 200; //the location of the frame we'll remove
+
+    int i;
+    int frameLocation;
+    int whichNode = 0; //0,1 or 2.
+    int whichFrame = 0;
+    while(cur->next!=NULL){
+        printf("%d\n",smallestAccessTime);
+        curPCB=cur->pcb;
+        for(i=0;i<333;i++){//we check every frame of the pcb
+            frameLocation=curPCB->pageTable[i];
+            printf("%d\n",frameLocation);
+            if (frameLocation<=-1){
+                break; //we've hit the end or the rest hasn't been loaded yet
+            }else if(curPCB->accessTimeTable[i]==0){ //this one hasn't been used yet we can evict it
+                curPCB->accessTimeTable[i]=-2; //it got evucted
+                curPCB->pageTable[i]=-2; //it got evicted
+                return frameLocation;
+            }else if(curPCB->accessTimeTable[i]<smallestAccessTime){
+                smallestAccessTime=curPCB->accessTimeTable[i];
+                frameSmallestATlocation=frameLocation;
+                whichFrame=i;
+            }
+        }
+        cur = cur->next;
+        whichNode++;
+    }
+    //the frame that does get evicted needs to have its location replaced by -2, meaning it was evicted
+    //we need to go through the queue again and set framelocation to -2
+    cur=head;
+    int tracker = 0;
+    while(tracker!=whichNode){
+        cur = cur->next;
+    }
+    cur->pcb->accessTimeTable[whichFrame]=-2;
+    cur->pcb->pageTable[whichFrame]=-2;
+    return frameSmallestATlocation; //return the index of the frame that was evicted.
+}
+*/

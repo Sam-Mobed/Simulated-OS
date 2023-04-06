@@ -5,8 +5,6 @@
 #include <time.h>
 #include <stdbool.h>
 
-
-//#define STOREPAGES_LENGTH 1000
 int FSIZE = 1000;
 #define STOREPAGES_LENGTH FSIZE
 
@@ -25,7 +23,7 @@ void pages_init(){
 	}
 }
 
-void printShellMemory(){
+void printFrameStore(){
 	int count_empty = 0;
 	for (int i = 0; i < STOREPAGES_LENGTH; i++){
 		if(strcmp(frameStore[i].var,"none") == 0){
@@ -58,12 +56,12 @@ typedef struct
     int load_frame; //the next frame to be loaded
 }PCB;
 
-//int pid_counter = 1;
-/*
-int generatePID(){
-    return pid_counter++;
-}
-*/
+typedef struct QueueNode{
+    PCB *pcb;
+    struct QueueNode *next;
+} QueueNode;
+
+//QueueNode head=NULL;
 
 void pageTable_init(int arr[]){
     int i;
@@ -100,18 +98,6 @@ PCB* makePCB(char *filename){
     return newPCB;
 }
 
-typedef struct QueueNode{
-    PCB *pcb;
-    struct QueueNode *next;
-} QueueNode;
-
-QueueNode head;
-
-
-//here we setup the PCB. we don't load anything into the memory yet, but we go through the file and 
-//see how it's organized. this will determine how many frames in total we will need to fit the entire content
-//this way, we will know to what line (and to which command on that line, if its a oneliner) a command on the frameStore corresponds
-//this will make storing and reloading much easier.
 void load_fileArchitecture(PCB *pcb){ //no need to pass the filename as the pcb already has it.
     FILE *sourceFile = fopen(pcb->pid, "r");
     char buffer[100]; //will hold the content of a line from sourceFile
@@ -134,7 +120,7 @@ void load_fileArchitecture(PCB *pcb){ //no need to pass the filename as the pcb 
             fputs(buffer, sourceFile);
             token = strtok(buffer, semic);
             while(token!=NULL){
-                sprintf(location, "%d_%d\0", fileLINE, lineCOMMAND);
+                sprintf(location, "%d_%d", fileLINE, lineCOMMAND);
                 pcb->fileArchitecture[currFrame][currCommand]=strdup(location);
                 lineCOMMAND++;
                 pcb->length++;
@@ -165,6 +151,18 @@ void load_fileArchitecture(PCB *pcb){ //no need to pass the filename as the pcb 
     pcb->job_length_score=pcb->length;
 }
 
+void printArchitecure(PCB *pcb){
+    for(int i=0;i<333;i++){
+        for(int j=0;j<3;j++){
+            printf("%s\n",pcb->fileArchitecture[i][j]);
+        }
+        printf("--\n");
+        if (i==6){
+            break;
+        }
+    }
+}
+
 char *loadCommand(PCB *pcb, int line, int cmdnum){
     FILE *sourceFile = fopen(pcb->pid, "r");
     char buffer[100];
@@ -174,60 +172,22 @@ char *loadCommand(PCB *pcb, int line, int cmdnum){
     
 
     int currLine=0;
-    while (currLine!=line+1){
+    while (currLine!=line){
         fgets(buffer,100, sourceFile); //skip line until we get to target
         currLine++;
     }
 
     fgets(buffer,100, sourceFile);
     fputs(buffer, sourceFile);
-    char *line_copy = strdup(buffer);
-    token = strtok(line_copy, semic);
+    token = strtok(buffer, semic);
 
     int currCommand=0;
-    while(currCommand!=cmdnum+1){
+    while(currCommand!=cmdnum){
         token=strtok(NULL,semic);
         currCommand++;
     }
 
-    free(line_copy);
     return strdup(token);
-}
-
-int get_leastRecentFrame(){
-    //we have to go through every single accesstable (of each pcb)
-    //and find the frame that was accessed the least recent
-    //-1 frame DNE, youve reached the end of the frame table
-    //0: frame has never been accessed, automatically evicted
-    //min_access points to the pcb->pageTable->frame accessed the least early
-
-    QueueNode *cur = head;
-    PCB *curPCB;
-    int smallestAccessTime = 200;
-    int frameSmallestATlocation; //the location of the frame we'll remove
-
-    int i;
-    int flag=0;
-    int frameLocation;
-    while(cur->next!=NULL){
-        curPCB=cur->pcb;
-        for(i=0;i<333;i++){//we check every frame of the pcb
-            frameLocation=curPCB->pageTable[i];
-            if (frameLocation==-1){
-                break; //we've hit the end or the rest hasn't been loaded yet
-            }else if (curPCB->accessTimeTable[i]==0){ //this one hasn't been used yet we can evict it
-                curPCB->accessTimeTable[i]=-2; //it got evucted
-                curPCB->pageTable[i]=-2; //it got evicted
-                return frameLocation;
-            }else if(curPCB->accessTimeTable[i]<smallestAccessTime){
-                smallestAccessTime=curPCB->accessTimeTable[i];
-                frameSmallestATlocation=frameLocation;
-            }
-        }
-        cur = cur->next;
-    }
-    //the frame that does get evicted needs to have its location replaced by -2, meaning it was evicted
-    return frameSmallestATlocation; //return the index of the frame that was evicted.
 }
 
 void evict_Frame(int location){
@@ -286,141 +246,136 @@ void load_file_toFramePage(PCB *pcb, int FRAMES_LIMIT){
             i=i+2;
         }
     }
-
-    if (i==STOREPAGES_LENGTH && frameCounter!=FRAMES_LIMIT){
-        int evictThisFrame = get_leastRecentFrame();
-        evict_Frame(evictThisFrame);
-        load_file_toFramePage(pcb, FRAMES_LIMIT-frameCounter);
-    } 
 }
-
-void reload_Currentframe(PCB *pcb){//we only need to reload if it's the current frame that was lost.
-    //we go inside framestore, find a hole or remove another frame, then reload 
-    //we have to update the location of the current frame inside the pagetable
-    //and maybe some other info and we should be good
-    int indextracker=0;
-    int i;
-    int done=0;//to let us know that currentframe has been reloaded
-    for (i=0; i<STOREPAGES_LENGTH; i++){
-        indextracker=i;
-        if (strcmp(frameStore[indextracker].var, "none") == 0){
-            pcb->pageTable[pcb->currentFrame]=i/3;
-            pcb->accessTimeTable[pcb->currentFrame]=0;//this frame has never been accessed, 
-            //but it'll be updated once we get out of the function
-            int k=0;
-            while(k!=3){
-                char *location=pcb->fileArchitecture[pcb->currentFrame][k];
-                if(strcmp(location,"END")==0){
-                    frameStore[indextracker].var=strdup("END");
-				    frameStore[indextracker].value=strdup("END");
-                    indextracker++;
-                    k++;
-                    continue;
-                }
-                int line = atoi(&location[0]);
-                int comnumber = atoi(&location[2]);//incase there is a oneliner
-                //from location we will get the line and the exact command;
-                char *command = loadCommand(pcb, line, comnumber);
-                frameStore[indextracker].var=strdup("process");
-				frameStore[indextracker].value=command; //might need strdup
-                indextracker++;
-                k++;
-            }
-            done=1;
-            break; //we only load one frame
-        }
-    }
-
-    if (!done){
-        int evictThisFrame = get_leastRecentFrame();
-        evict_Frame(evictThisFrame);
-        reload_Currentframe(pcb);
-    }
-}
-
-void printarr(char *commands[]){
-    for (int i=0;i<10;i++){
-        printf("%s\n", commands[i]);
-    }
-    printf("%s\n","END");
-}
-
-void printFrame(){
-    for (int i=0;i<10;i++){
-        printf("%s\n", frameStore[i].value);
-    }
-}
-
-
-
-
-
-//we have to check if the frame we want to load has already been loaded once. because if it has been loaded, then 
-//the length the number of frames and everything else will be repeated. 
-
-
-//initializeBackingStore();
-	//load_file_backingStore("sampletestFile");
-	//contains_unprintable_bytes();
-    /*
-    char *commandQueue[] = {"X_","X_","X_","X_","X_","X_","X_","X_","X_","X_"}; //up to ten commands in a oneliner
-    char *line="echo hello";
-    //char *line="\n";
-    //char *line="";
-
-    int c = getCommands(line, commandQueue);
-    printf("%d\n",c);
-    for(int i = 0; i < 10; i++){
-      printf("%s\n", commandQueue[i]);
-    }
-
-
-    for (int i=0;i<10;i++){
-        printf("%d\n", newPcb->pageTable[i]);
-    }
-    */
 
 int main(int argc, char *argv[]){
     pages_init();
 
-    frameStore[0].var="process";
-    frameStore[0].value="test";
-    frameStore[1].var="process";
-    frameStore[1].value="test1";
-    frameStore[2].var="process";
-    frameStore[2].value="test2";
+    PCB *pcb = makePCB("set.txt");
 
-    frameStore[6].var="process";
-    frameStore[6].value="test";
-    frameStore[7].var="process";
-    frameStore[7].value="test1";
-    frameStore[8].var="process";
-    frameStore[8].value="test2";
-    frameStore[9].var="process";
-    frameStore[9].value="test";
-    frameStore[10].var="process";
-    frameStore[10].value="test1";
-    frameStore[11].var="process";
-    frameStore[11].value="test2";
+    load_fileArchitecture(pcb);
 
+    printf("%s\n", pcb->pid);
+    printf("length: %d\n",pcb->length);
+    printf("score: %d\n",pcb->length);
+    printf("numFrames: %d\n",pcb->numFrames);
 
-    PCB *newPcb = makePCB("set.txt");
-
-    //load_file_toFramePage("./set.txt",newPcb, 2);
-    //load_file_toFramePage("./set.txt",newPcb, 1);
-    //printf("%s\n","DONE");
+    printf("Command:%s\n", loadCommand(pcb, 0, 1));
+    printf("Command:%s\n", loadCommand(pcb, 0, 2));
+    printf("Command:%s\n", loadCommand(pcb, 7, 1));
+    printf("Command:%s\n", loadCommand(pcb, 7, 3));
+    printf("Command:%s\n", loadCommand(pcb, 8, 0));
+    
+    //printf("%d\n",pcb.);
+    printArchitecure(pcb);
 
     printShellMemory();
-    
-    printf("%d\n", newPcb->pageTable[0]);
-    printf("%d\n", newPcb->pageTable[1]);
-    printf("%d\n", newPcb->pageTable[2]);
-    printf("%d\n", newPcb->pageTable[3]);
-
-    printf("%d\n",newPcb->length);
-    printf("%d\n",newPcb->job_length_score);
-    printf("%d\n",newPcb->numFrames);
-    
-    free(newPcb);
     return 0;
 }
+
+
+
+
+
+
+
+
+/*OLD LOAD FILE TO FRAMEPAGE
+
+//here we iterate through the framePage, and each time we find a 3-line hole, we add a frame
+//if we reach the end of the file, we have to add a line with string END that indicates that there isn't anything left to execute.
+int load_file_toFramePage(char* filename, PCB *pcb, int FRAMES_LIMIT){
+	FILE *sourceFile = fopen(filename, "r");
+	int len=0;
+	char buffer[100];
+	memset(buffer,0,100); //clear the buffer
+	int flag=0; //set to false at first, once we hit the end of the file we'll flip it to true so we can break out of the loop
+	/////////
+	char *commandQueue[] = {"X_","X_","X_","X_","X_","X_","X_","X_","X_","X_"}; //up to ten commands in a oneliner
+	int commandsLeft=0;
+	int arrayIndex=0;
+    int indexTracker=0;
+    int frameCounter=0;
+	
+	int counter=0; //to make sure we copy 3 commands to every frame
+	for (int i=0; i<1000; i++){
+        indexTracker=i;
+        
+		if (flag){ //we've reached the end of the file, we're done
+			break;
+		}
+		if (strcmp(frameStore[indexTracker].var, "none") == 0){ //this means we have found a hole of three lines, and we can start copying into the frame table
+            pcb->pageTable[frameCounter]=i/3;
+            frameCounter++;
+
+			counter=0;
+			while(commandsLeft && counter!=3){//are there commands left from a previous one-liner that we haven't added to the memory yet, if so copy them
+                frameStore[indexTracker].var=strdup("process");
+				frameStore[indexTracker].value=strdup(commandQueue[arrayIndex]);
+				free(commandQueue[arrayIndex]); //since we used strdup to put a command there
+				commandQueue[arrayIndex]="X_"; //to show that the slot doesnt contain a command
+				indexTracker++;
+                len++;
+				arrayIndex++;
+				counter++;
+				if(arrayIndex==10 || (strcmp(commandQueue[arrayIndex], "X_")==0)){ //if we reach the end of the array, or next element is X_then we are done with the oneliner
+					arrayIndex=0;
+					commandsLeft=0;
+                    break;
+				}
+			}
+
+			while (counter!=3 && !flag){ //this means there is still space inside the frame
+				if(fgets(buffer,100, sourceFile)!=NULL){
+					fputs(buffer, sourceFile);
+					getCommands(buffer, commandQueue); //to check how many commands were in that line.
+					commandsLeft=1; //we set this to true because now the array contains command(s)
+					memset(buffer,0,100);
+					//we check inside the array
+					int tracker = 0; //to go through the array
+					while(commandsLeft){ //keep in mind arrayIndex==0 here
+						frameStore[indexTracker].var=strdup("process");
+						frameStore[indexTracker].value=strdup(commandQueue[tracker]);
+						free(commandQueue[tracker]); //since we used strdup to put a command there
+						commandQueue[tracker]="X_"; //to show that the slot doesnt contain a command
+						counter++;
+						len++;
+                        indexTracker++;
+						tracker++;
+						arrayIndex++;
+
+                        if(arrayIndex==10 || (strcmp(commandQueue[arrayIndex], "X_")==0)){ //we've cleared the array
+							arrayIndex=0;
+							commandsLeft=0;
+                            break;
+						}
+						if(counter==3){ //no space left inside the frame, we have to find another one
+							break;
+						}
+					}
+                    if (feof(sourceFile)){
+                        flag=1;
+                    }
+				}
+                if (flag && counter!=3){
+                    while (counter!=3){
+                        frameStore[indexTracker].var="END"; //if the script has ended but the frame hasn't then we fill the remaining slots of the frame with END=END 
+                        frameStore[indexTracker].value="END";
+                        indexTracker++;
+                        counter++;
+                    }
+				}
+			}
+            i=i+2;
+		}
+	}
+	pcb->length=len;
+	pcb->job_length_score=len;
+	pcb->numFrames=frameCounter; //since we start at 0, to get the actual number
+	
+	fclose(sourceFile);
+	return 0;
+}
+
+
+*/

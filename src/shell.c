@@ -35,6 +35,8 @@ int main(int argc, char *argv[]) {
 	mem_init();
     //initialize pages memory
     pages_init();
+    //initialize accessTable
+    init_accessTimeTable();
 
 	while(1) {						
         if (isatty(fileno(stdin))) printf("%c ",prompt);
