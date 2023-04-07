@@ -212,6 +212,8 @@ run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
 
 int quit(){
 	printf("%s\n", "Bye!");
+	mem_free_lines();
+	free_frameStore();
 	threads_terminate();
 	ready_queue_destory();
 	exit(0);
@@ -232,6 +234,7 @@ int print(char* var){
 	char *value = mem_get_value(var);
 	if(value == NULL) value = "\n";
 	printf("%s\n", value); 
+	free(value);
 	return 0;
 }
 

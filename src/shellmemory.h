@@ -12,7 +12,8 @@ void mem_set_value(char *var, char *value);
 int load_file_backingStore(PCB *pcb);
 void load_file_toFramePage(PCB *pcb, int FRAMES_LIMIT, int timeCounter);
 char * mem_get_value_at_line(int index);
-void mem_free_lines_between(int start, int end);
+//void mem_free_lines_between(int start, int end);
+void mem_free_lines();
 char * frames_get_value_at_line(int index);
 void frameTable_free_frames(QueueNode *n);
 void printShellMemory();
@@ -22,4 +23,6 @@ void printFrameStore();
 void setAccessTime(int time, int frame);
 void init_accessTimeTable();
 int getSmallestAccessTimeIndex();
+void free_architecture(char* arr[][3]);
+void free_frameStore();
 #endif

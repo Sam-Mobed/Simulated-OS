@@ -57,6 +57,15 @@ void printAccessTable(){
     }
 }
 
+void free_architecture(char* arr[][3]){
+    int i, j;
+    for(i=0;i<333;i++){ //for each frame
+        for(j=0;j<3;j++){ //for each line of the frame
+            free(arr[i][j]);
+        }
+    }
+}
+
 // Helper functions
 int match(char *model, char *var) {
 	int i, len=strlen(var), matchCount=0;
@@ -308,11 +317,15 @@ void evict_Frame(int location){
     int trueLocation = location*3;
     printf("Page fault! Victim page contents:\n\n");
     while(counter!=3){
-        printf("%s\n",frameStore[trueLocation+counter].value);
+        printf("%s",frameStore[trueLocation+counter].value); //lines that arent one liners already have \n at the end 
+        int len = strlen(frameStore[trueLocation+counter].value);
+        if(frameStore[trueLocation+counter].value[len - 1]!='\n'){
+            printf("\n");
+        }
         free(frameStore[trueLocation+counter].var);
         free(frameStore[trueLocation+counter].value);
-        frameStore[trueLocation+counter].var=strdup("none");
-        frameStore[trueLocation+counter].value=strdup("none");
+        frameStore[trueLocation+counter].var="none";
+        frameStore[trueLocation+counter].value="none";
         counter++;
     }
     printf("\nEnd of victim page contents.\n");
@@ -347,7 +360,7 @@ void load_file_toFramePage(PCB *pcb, int FRAMES_LIMIT, int timeCounter){ //we do
                     //from location we will get the line and the exact command;
                     char *command = loadCommand(pcb, line, comnumber);
                     frameStore[indextracker].var=strdup("process");
-                    frameStore[indextracker].value=command; //might need strdup
+                    frameStore[indextracker].value=command;
                     indextracker++;
                     k++;
                 }
@@ -387,7 +400,7 @@ char * frames_get_value_at_line(int index){
 	if(index<0 || index > STOREPAGES_LENGTH) return NULL; 
 	return frameStore[index].value;
 }
-
+/*
 void mem_free_lines_between(int start, int end){
 	for (int i=start; i<=end && i<SHELL_MEM_LENGTH; i++){
 		if(shellmemory[i].var != NULL){
@@ -398,6 +411,25 @@ void mem_free_lines_between(int start, int end){
 		}	
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";
+	}
+}
+*/
+
+void mem_free_lines(){
+	for (int i=0;i<SHELL_MEM_LENGTH; i++){
+		if(shellmemory[i].value != NULL && strcmp(shellmemory[i].value, "none")!=0){
+			free(shellmemory[i].var);
+            free(shellmemory[i].value);
+		}
+	}
+}
+
+void free_frameStore(){
+	for (int i=0;i<STOREPAGES_LENGTH; i++){
+		if(strcmp(frameStore[i].value, "none")!=0){
+			free(frameStore[i].var);
+            free(frameStore[i].value);
+		}
 	}
 }
 
@@ -411,12 +443,9 @@ void frameTable_free_frames(QueueNode *n){
 		for(i=0;i<3;i++){
 			frameIndex = (pcb->pageTable[pcb->currentFrame] * 3)+i;
 
-			if(frameStore[frameIndex].var != NULL){
-				free(frameStore[frameIndex].var);
-			}	
-			if(frameStore[frameIndex].value != NULL){
-				free(frameStore[frameIndex].value);
-			}	
+			free(frameStore[frameIndex].var);
+			free(frameStore[frameIndex].value);
+				
 			frameStore[frameIndex].var = "none";
 			frameStore[frameIndex].value = "none";
 		}

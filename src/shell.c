@@ -86,6 +86,11 @@ int parseInput(char *ui) {
         a++; 
     }
     errorCode = interpreter(words, w);
+    
+    for(int i=0;i<w;i++){
+        free(words[i]);
+    }
+    
     return errorCode;
 }
 

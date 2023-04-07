@@ -23,7 +23,7 @@ void architecture_init(char* arr[][3]){
     int i, j;
     for(i=0;i<333;i++){ //for each frame
         for(j=0;j<3;j++){ //for each line of the frame
-            arr[i][j] = strdup("000\0");
+            arr[i][j] = NULL;
         }
     }
 }

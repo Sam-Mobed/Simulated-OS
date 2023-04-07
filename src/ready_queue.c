@@ -18,12 +18,19 @@ void ready_queue_destory()
     if(!head) return;
     QueueNode *cur = head;
     QueueNode *tmp;
-    while(cur->next!=NULL){
+    //while(cur->next!=NULL){
+    while(cur!=NULL){
+        if(cur->pcb!=NULL){
+            free_architecture(cur->pcb->fileArchitecture);
+            free(cur->pcb->pid);
+            frameTable_free_frames(cur);
+            free(cur->pcb);
+        }
         tmp = cur->next;
         free(cur);
         cur = tmp;
     }
-    free(cur);
+    //free(cur);
 }
 
 void ready_queue_add_to_tail(QueueNode *node)
@@ -67,7 +74,10 @@ void print_ready_queue(){
 
 void terminate_process(QueueNode *node){
     //node should not be in the ready queue
-    frameTable_free_frames(node);
+    free_architecture(node->pcb->fileArchitecture);
+    free(node->pcb->pid);
+    //frameTable_free_frames(node); when a process terminates, we don't clean up the corresponding pages
+    free(node->pcb);
     free(node);
 }
 
